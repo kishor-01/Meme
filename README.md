@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FutuMemes - Futuristic Meme Sharing Platform
 
 FutuMemes is a modern, futuristic meme sharing platform built with Node.js, Express, MongoDB, and EJS. It features a sleek, dark-themed UI with user authentication, meme uploads, admin approval workflow, and social features like likes and sharing.
@@ -158,3 +159,6 @@ You can customize the theme colors by modifying the CSS variables in `public/css
 - [EJS](https://ejs.co/) for templating
 - [MongoDB](https://www.mongodb.com/) for database
 - [Express](https://expressjs.com/) for server framework 
+=======
+# Meme
+>>>>>>> f9b50179d55c7de648de42b870e3571ab921c3c4
