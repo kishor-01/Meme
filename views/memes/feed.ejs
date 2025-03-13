@@ -45,6 +45,30 @@
         </a>
       </div>
       
+      <!-- Hashtag Filter Bar -->
+      <div class="hashtag-filter">
+        <div class="hashtag-filter-item active">All</div>
+        <% 
+        // Extract unique tags from all memes
+        let uniqueTags = [];
+        if (memes && memes.length > 0) {
+          memes.forEach(meme => {
+            if (meme.tags && meme.tags.length > 0) {
+              meme.tags.forEach(tag => {
+                if (!uniqueTags.includes(tag)) {
+                  uniqueTags.push(tag);
+                }
+              });
+            }
+          });
+        }
+        %>
+        
+        <% uniqueTags.forEach(tag => { %>
+          <div class="hashtag-filter-item" data-tag="<%= tag %>">#<%= tag %></div>
+        <% }); %>
+      </div>
+      
       <div class="meme-feed" id="meme-feed">
         <% if (memes && memes.length > 0) { %>
           <% memes.forEach(meme => { %>
@@ -63,18 +87,17 @@
                   </button>
                   <div class="meme-post-options-menu">
                     <a href="/memes/<%= meme._id %>" class="meme-post-option">
-                      <i class="fas fa-external-link-alt"></i> Open in new page
+                      <i class="fas fa-external-link-alt"></i> Open in Full View
                     </a>
-                    <% if(typeof currentUser !== 'undefined' && currentUser && currentUser._id === meme.user._id.toString()) { %>
-                      <form action="/memes/<%= meme._id %>?_method=DELETE" method="POST" class="meme-post-option delete-form">
-                        <button type="submit" class="delete-btn">
-                          <i class="fas fa-trash"></i> Delete
-                        </button>
-                      </form>
-                    <% } %>
-                    <% if(typeof currentUser !== 'undefined' && currentUser && currentUser._id !== meme.user._id.toString()) { %>
-                      <button class="meme-post-option report-btn" data-id="<%= meme._id %>">
-                        <i class="fas fa-flag"></i> Report
+                    <button class="meme-post-option report-btn" data-id="<%= meme._id %>">
+                      <i class="fas fa-flag"></i> Report
+                    </button>
+                    <% if (currentUser && (currentUser._id == meme.user._id || currentUser.role === 'admin')) { %>
+                      <a href="/memes/<%= meme._id %>/edit" class="meme-post-option">
+                        <i class="fas fa-edit"></i> Edit
+                      </a>
+                      <button class="meme-post-option delete-meme-btn" data-id="<%= meme._id %>">
+                        <i class="fas fa-trash-alt"></i> Delete
                       </button>
                     <% } %>
                   </div>
@@ -98,6 +121,25 @@
                       class="meme-post-image"
                     >
                   <% } %>
+                </div>
+                
+                <!-- Instagram Style Side Actions -->
+                <div class="meme-post-side-actions">
+                  <button class="meme-post-side-action like-btn <%= meme.likedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
+                    <i class="<%= meme.likedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-heart"></i>
+                    <span class="count"><%= meme.likes %></span>
+                  </button>
+                  <button class="meme-post-side-action comment-btn" data-id="<%= meme._id %>">
+                    <i class="far fa-comment"></i>
+                    <span class="count"><%= meme.comments ? meme.comments.length : 0 %></span>
+                  </button>
+                  <button class="meme-post-side-action share-btn" data-id="<%= meme._id %>" data-title="<%= meme.title %>">
+                    <i class="fas fa-share"></i>
+                    <span class="count"><%= meme.shares || 0 %></span>
+                  </button>
+                  <button class="meme-post-side-action save-btn <%= meme.savedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
+                    <i class="<%= meme.savedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-bookmark"></i>
+                  </button>
                 </div>
                 
                 <div class="meme-post-info">
@@ -136,35 +178,10 @@
                     </button>
                   </div>
                   
-                  <!-- Display users who liked this post -->
-                  <% if (meme.likedBy && meme.likedBy.length > 0) { %>
-                    <div class="liked-by-container">
-                      <div class="liked-by-preview">
-                        <% meme.likedBy.slice(0, 3).forEach(user => { %>
-                          <img src="<%= user.profileImage %>" alt="<%= user.name %>" title="<%= user.name %>" class="liked-by-avatar">
-                        <% }) %>
-                        <% if (meme.likedBy.length > 3) { %>
-                          <span class="liked-by-more">+<%= meme.likedBy.length - 3 %></span>
-                        <% } %>
-                      </div>
-                      <div class="liked-by-text">
-                        <% if (meme.likedBy.length === 1) { %>
-                          Liked by <a href="/users/profile/<%= meme.likedBy[0]._id %>"><%= meme.likedBy[0].name %></a>
-                        <% } else if (meme.likedBy.length === 2) { %>
-                          Liked by <a href="/users/profile/<%= meme.likedBy[0]._id %>"><%= meme.likedBy[0].name %></a> and <a href="/users/profile/<%= meme.likedBy[1]._id %>"><%= meme.likedBy[1].name %></a>
-                        <% } else if (meme.likedBy.length === 3) { %>
-                          Liked by <a href="/users/profile/<%= meme.likedBy[0]._id %>"><%= meme.likedBy[0].name %></a>, <a href="/users/profile/<%= meme.likedBy[1]._id %>"><%= meme.likedBy[1].name %></a>, and <a href="/users/profile/<%= meme.likedBy[2]._id %>"><%= meme.likedBy[2].name %></a>
-                        <% } else { %>
-                          Liked by <a href="/users/profile/<%= meme.likedBy[0]._id %>"><%= meme.likedBy[0].name %></a>, <a href="/users/profile/<%= meme.likedBy[1]._id %>"><%= meme.likedBy[1].name %></a>, and <%= meme.likedBy.length - 2 %> others
-                        <% } %>
-                      </div>
-                    </div>
-                  <% } %>
-                  
                   <% if (meme.tags && meme.tags.length > 0) { %>
                     <div class="meme-post-tags">
                       <% meme.tags.forEach(tag => { %>
-                        <a href="/memes/search?q=<%= tag %>" class="meme-post-tag">#<%= tag %></a>
+                        <a href="/tags/<%= tag %>" class="meme-post-tag">#<%= tag %></a>
                       <% }) %>
                     </div>
                   <% } %>
@@ -173,104 +190,98 @@
             </div>
           <% }) %>
           
-          <% if (hasMore) { %>
-            <div class="load-more-container">
-              <button id="load-more-btn" data-page="<%= nextPage %>" class="btn btn-primary">
-                <i class="fas fa-spinner"></i> Load More
-              </button>
-            </div>
-          <% } %>
+          <div class="load-more-container">
+            <button id="load-more-btn" class="btn" data-page="2">
+              <i class="fas fa-spinner"></i> Load More
+            </button>
+          </div>
         <% } else { %>
           <div class="empty-state">
             <div class="empty-state-icon">
-              <i class="fas fa-image"></i>
+              <i class="far fa-frown"></i>
             </div>
             <h3>No memes found</h3>
-            <p>There are no memes available yet. Be the first to upload!</p>
-            <% if(typeof currentUser !== 'undefined' && currentUser) { %>
-              <a href="/memes/upload" class="btn btn-primary mt-3">
-                <i class="fas fa-upload"></i> Upload a Meme
-              </a>
-            <% } else { %>
-              <a href="/users/login" class="btn btn-primary mt-3">
-                <i class="fas fa-sign-in-alt"></i> Login to Upload
-              </a>
-            <% } %>
+            <p>Be the first to upload a meme in this category!</p>
+            <a href="/memes/upload" class="btn btn-primary">
+              <i class="fas fa-upload"></i> Upload Meme
+            </a>
           </div>
         <% } %>
       </div>
     </div>
-    
-    <!-- Report Modal -->
-    <div id="report-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Report Meme</h2>
-          <span class="close">&times;</span>
+  </div>
+  
+  <!-- Report Modal -->
+  <div class="modal" id="report-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Report Meme</h3>
+        <button class="close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="report-form">
+          <input type="hidden" id="report-meme-id" name="memeId">
+          <div class="form-group">
+            <label for="report-reason">Reason:</label>
+            <select id="report-reason" name="reason" class="form-control" required>
+              <option value="" disabled selected>Select a reason</option>
+              <option value="inappropriate">Inappropriate Content</option>
+              <option value="spam">Spam</option>
+              <option value="copyright">Copyright Violation</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" id="other-reason-group" style="display: none;">
+            <label for="other-reason">Please specify:</label>
+            <textarea id="other-reason" name="otherReason" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="report-description">Additional details (optional):</label>
+            <textarea id="report-description" name="description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary close">Cancel</button>
+            <button type="submit" class="btn btn-danger">Submit Report</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Share Modal -->
+  <div class="modal" id="share-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Share Meme</h3>
+        <button class="close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="share-link">Share Link:</label>
+          <div class="input-group">
+            <input type="text" id="share-link" class="form-control" readonly>
+            <button id="copy-link-btn" class="btn btn-primary">
+              <i class="fas fa-copy"></i> Copy Link
+            </button>
+          </div>
         </div>
-        <div class="modal-body">
-          <form id="report-form">
-            <input type="hidden" id="report-meme-id" name="memeId">
-            <div class="form-group">
-              <label for="report-reason">Why are you reporting this meme?</label>
-              <select id="report-reason" name="reason" class="form-control" required>
-                <option value="">Select a reason</option>
-                <option value="inappropriate">Inappropriate content</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="copyright">Copyright violation</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="form-group" id="other-reason-group" style="display: none;">
-              <label for="other-reason">Please specify:</label>
-              <textarea id="other-reason" name="otherReason" class="form-control"></textarea>
-            </div>
-            <div class="form-group">
-              <button type="submit" class="btn btn-danger">Submit Report</button>
-            </div>
-          </form>
+        <div class="share-social">
+          <button id="share-twitter" class="btn btn-social btn-twitter">
+            <i class="fab fa-twitter"></i> Twitter
+          </button>
+          <button id="share-facebook" class="btn btn-social btn-facebook">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </button>
+          <button id="share-reddit" class="btn btn-social btn-reddit">
+            <i class="fab fa-reddit-alien"></i> Reddit
+          </button>
+          <button id="share-whatsapp" class="btn btn-social btn-whatsapp">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </button>
         </div>
       </div>
     </div>
-    
-    <!-- Share Modal -->
-    <div id="share-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Share Meme</h2>
-          <span class="close">&times;</span>
-        </div>
-        <div class="modal-body">
-          <p>Share this meme with others:</p>
-          <div class="share-links">
-            <a href="#" id="share-twitter" class="share-link twitter" target="_blank">
-              <i class="fab fa-twitter"></i> Twitter
-            </a>
-            <a href="#" id="share-facebook" class="share-link facebook" target="_blank">
-              <i class="fab fa-facebook"></i> Facebook
-            </a>
-            <a href="#" id="share-reddit" class="share-link reddit" target="_blank">
-              <i class="fab fa-reddit"></i> Reddit
-            </a>
-            <a href="#" id="share-whatsapp" class="share-link whatsapp" target="_blank">
-              <i class="fab fa-whatsapp"></i> WhatsApp
-            </a>
-          </div>
-          <div class="form-group mt-4">
-            <label for="share-link">Or copy this link:</label>
-            <div class="copy-link-container">
-              <input type="text" id="share-link" class="form-control" readonly>
-              <button id="copy-link-btn" class="btn btn-primary">
-                <i class="fas fa-copy"></i> Copy
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <%- include('../partials/footer') %>
   </div>
 </body>
 </html> 

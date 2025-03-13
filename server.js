@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 require('dotenv').config();
-=======
-try {
-  require('dotenv').config();
-} catch (error) {
-  console.error('Error loading dotenv:', error);
-}
 
 // Fallback environment variables if .env file is not loaded
 if (!process.env.PORT) process.env.PORT = 3000;
@@ -16,7 +9,7 @@ console.log('Environment variables loaded:');
 console.log('PORT:', process.env.PORT);
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
 console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
->>>>>>> 8d9357f (intial)
+
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -28,8 +21,6 @@ const flash = require('connect-flash');
 // Initialize Express app
 const app = express();
 
-<<<<<<< HEAD
-=======
 // Global to track if we're in demo mode (no MongoDB)
 global.DEMO_MODE = false;
 
@@ -97,7 +88,6 @@ function setupMockModels() {
   console.log('Mock models set up for demo mode');
 }
 
->>>>>>> 8d9357f (intial)
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -107,16 +97,12 @@ mongoose.connect(process.env.MONGODB_URI, {
   family: 4 // Use IPv4, skip trying IPv6
 })
 .then(() => console.log('MongoDB Connected'))
-<<<<<<< HEAD
-.catch(err => console.log('MongoDB Connection Error:', err));
-=======
 .catch(err => {
   console.log('MongoDB Connection Error:', err);
   console.log('Starting in DEMO MODE with mock data. Some features will be limited.');
   global.DEMO_MODE = true;
   setupMockModels();
 });
->>>>>>> 8d9357f (intial)
 
 // Set up EJS view engine
 app.set('view engine', 'ejs');
@@ -132,15 +118,11 @@ app.use(methodOverride('_method'));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-<<<<<<< HEAD
-  saveUninitialized: false
-=======
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
->>>>>>> 8d9357f (intial)
 }));
 
 // Passport middleware
@@ -189,4 +171,4 @@ const server = app.listen(PORT, () => {
   } else {
     console.error('Server error:', err);
   }
-}); 
+});

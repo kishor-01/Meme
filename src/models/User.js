@@ -76,8 +76,6 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-<<<<<<< HEAD
-=======
 // Add additional methods for demo mode support
 if (typeof global.DEMO_MODE !== 'undefined' && global.DEMO_MODE) {
   console.log('Setting up mock User model methods');
@@ -103,7 +101,6 @@ if (typeof global.DEMO_MODE !== 'undefined' && global.DEMO_MODE) {
   };
 }
 
->>>>>>> 8d9357f (intial)
 const User = mongoose.model('User', UserSchema);
 
-module.exports = User; 
+module.exports = User;

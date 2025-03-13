@@ -19,12 +19,12 @@ body {
 
 .content-container {
   padding: 0;
-  margin: 0 auto; /* Keep the center alignment */
-  max-width: 1200px; /* Keep the max width */
+  margin: 0 auto;
+  max-width: 100%;
   width: 100%;
-  height: calc(100vh - 60px); /* Only account for navbar */
+  height: calc(100vh - 60px);
   overflow: hidden;
-  flex: 1; /* Take remaining space */
+  flex: 1;
   position: relative;
 }
 
@@ -36,10 +36,15 @@ body {
   background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  z-index: 100;
-  margin: 0 auto;
-  max-width: 1200px; /* Match content container max-width */
+  z-index: 1000; /* Increased z-index to ensure header stays on top */
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  margin: 0 auto;
+  max-width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dashboard-title {
@@ -56,10 +61,10 @@ body {
 
 .message-container {
   position: fixed;
-  top: 60px;
+  top: 70px; /* Increased to ensure messages appear below header */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
+  z-index: 999;
   width: auto;
 }
 
@@ -72,13 +77,53 @@ body {
   padding: 10px 0;
   position: sticky;
   top: 60px;
-  z-index: 90;
+  z-index: 990; /* High z-index but below header */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin: 0 auto;
-  max-width: 1200px; /* Match content container max-width */
+  max-width: 100%;
   width: 100%;
+}
+
+/* Hashtag Filter */
+.hashtag-filter {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  position: sticky;
+  top: 115px; /* Positioned below category tabs */
+  z-index: 980;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.hashtag-filter::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.hashtag-filter-item {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.hashtag-filter-item.active {
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.5);
+}
+
+.hashtag-filter-item:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
 }
 
 .category-tab {
@@ -112,10 +157,9 @@ body {
 }
 
 .meme-feed {
-  height: calc(100vh - 60px - 40px - 48px); /* 60px navbar + 40px dashboard header + 48px category tabs */
-  min-height: 500px; /* Set minimum height as suggested */
+  height: 100%;
   width: 100%;
-  max-width: 1200px; /* Match content container max-width */
+  max-width: 100%;
   margin: 0 auto;
   overflow-y: auto;
   overflow-x: hidden;
@@ -123,18 +167,17 @@ body {
   -webkit-overflow-scrolling: touch;
   background-color: black;
   position: relative;
-  padding-bottom: 0; /* Remove extra padding */
+  padding-bottom: 0;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center items horizontally */
+  align-items: center;
 }
 
 .meme-post {
-  height: calc(100vh - 60px - 40px - 40px - 48px); /* Adjust height to account for all elements */
-  max-height: calc(100vh - 160px); /* Maximum height to ensure visibility */
+  height: 100vh;
   width: 100%;
-  max-width: 800px; /* Control the width of posts for better visibility */
-  margin: 0 auto 20px auto; /* Center horizontally and add bottom margin */
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -143,8 +186,8 @@ body {
   background-color: black;
   overflow: hidden;
   padding: 0;
-  border-radius: 12px; /* Add border radius for better appearance */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .meme-post-header {
@@ -291,7 +334,7 @@ body {
 .meme-post-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   margin: 0 auto;
 }
@@ -299,7 +342,7 @@ body {
 .meme-post-video {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   margin: 0 auto;
 }
@@ -343,7 +386,7 @@ body {
   background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%);
   color: white;
   z-index: 10;
-  padding-bottom: 40px;
+  padding-bottom: 70px; /* Increased to prevent content being cut off */
 }
 
 .meme-post-title {
@@ -397,6 +440,50 @@ body {
   gap: 10px;
   padding: 0;
   margin-bottom: 16px;
+}
+
+/* Instagram Reels style side buttons */
+.meme-post-side-actions {
+  position: absolute;
+  right: 15px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  z-index: 15;
+}
+
+.meme-post-side-action {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.2rem;
+}
+
+.meme-post-side-action:hover, 
+.meme-post-side-action.active {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.meme-post-side-action.active {
+  color: var(--primary);
+}
+
+.meme-post-side-action .count {
+  position: absolute;
+  bottom: -20px;
+  font-size: 0.8rem;
+  color: white;
 }
 
 .meme-post-action {
@@ -462,6 +549,7 @@ body {
   height: 100px;
   background-color: black;
   scroll-snap-align: start;
+  z-index: 5;
 }
 
 #load-more-btn {
@@ -519,7 +607,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
+  z-index: 1500; /* Increased z-index to be above header */
   overflow: auto;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
@@ -598,6 +686,34 @@ body {
   padding-top: 15px;
 }
 
+/* Toast Notification */
+#toast-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 1600; /* Higher than modals */
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  max-width: 80%;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#toast-notification.show {
+  opacity: 1;
+  transform: translate(-50%, -10px);
+}
+
 /* Mobile optimization */
 @media (max-width: 768px) {
   .meme-post-header {
@@ -619,7 +735,7 @@ body {
   
   .meme-post-info {
     padding: 16px;
-    padding-bottom: 30px;
+    padding-bottom: 60px;
   }
   
   .meme-post-title {
@@ -736,7 +852,7 @@ body {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.9);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 80;
+  z-index: 800; /* Increased but below header */
   padding: 10px 0;
   color: white;
   min-height: 50px;
@@ -760,7 +876,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 200; /* High enough to be visible above content */
   pointer-events: none;
   opacity: 0;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;

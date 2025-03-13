@@ -25,9 +25,6 @@ module.exports = function(passport) {
           }
         });
       } catch (err) {
-<<<<<<< HEAD
-        console.log(err);
-=======
         console.log('Error in authentication:', err);
         
         // If in demo mode and there's an error, let's log in as demo user
@@ -43,18 +40,13 @@ module.exports = function(passport) {
           }
         }
         
->>>>>>> 8d9357f (intial)
         return done(err);
       }
     })
   );
 
   passport.serializeUser((user, done) => {
-<<<<<<< HEAD
-    done(null, user.id);
-=======
     done(null, user._id);
->>>>>>> 8d9357f (intial)
   });
 
   passport.deserializeUser(async (id, done) => {
@@ -62,8 +54,6 @@ module.exports = function(passport) {
       const user = await User.findById(id);
       done(null, user);
     } catch (err) {
-<<<<<<< HEAD
-=======
       console.log('Error in deserializeUser:', err);
       
       // If in demo mode and there's an error, try to get the user from mock data
@@ -74,8 +64,7 @@ module.exports = function(passport) {
         }
       }
       
->>>>>>> 8d9357f (intial)
       done(err, null);
     }
   });
-}; 
+};

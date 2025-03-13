@@ -18,17 +18,11 @@ router.get('/', async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-<<<<<<< HEAD
-    res.status(500).render('error', {
-      title: 'Server Error',
-      error: 'Something went wrong. Please try again later.'
-=======
     // Render the page with empty memes array if there's an error
     res.render('index', {
       title: 'Welcome to Futuristic Memes',
       memes: [],
       error: 'Could not load memes. Database connection issue.'
->>>>>>> 8d9357f (intial)
     });
   }
 });
@@ -66,4 +60,4 @@ router.get('/contact', (req, res) => {
   });
 });
 
-module.exports = router; 
+module.exports = router;

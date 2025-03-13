@@ -94,8 +94,6 @@ const MemeSchema = new mongoose.Schema({
 // Add text index for search functionality
 MemeSchema.index({ title: 'text', description: 'text', tags: 'text' });
 
-<<<<<<< HEAD
-=======
 // Add additional methods for demo mode support
 if (typeof global.DEMO_MODE !== 'undefined' && global.DEMO_MODE) {
   console.log('Setting up mock Meme model methods');
@@ -145,7 +143,6 @@ if (typeof global.DEMO_MODE !== 'undefined' && global.DEMO_MODE) {
   }
 }
 
->>>>>>> 8d9357f (intial)
 const Meme = mongoose.model('Meme', MemeSchema);
 
-module.exports = Meme; 
+module.exports = Meme;
