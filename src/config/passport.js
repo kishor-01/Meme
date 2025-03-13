@@ -25,14 +25,36 @@ module.exports = function(passport) {
           }
         });
       } catch (err) {
+<<<<<<< HEAD
         console.log(err);
+=======
+        console.log('Error in authentication:', err);
+        
+        // If in demo mode and there's an error, let's log in as demo user
+        if (global.DEMO_MODE) {
+          console.log('Demo mode: Authenticating as demo user');
+          
+          if (email === 'demo@example.com' && password === 'password') {
+            return done(null, global.mockData.users[0]);
+          } else if (email === 'admin@admin.meme.com' && password === 'password') {
+            return done(null, global.mockData.users[1]);
+          } else {
+            return done(null, false, { message: 'In demo mode, use demo@example.com or admin@admin.meme.com with password "password"' });
+          }
+        }
+        
+>>>>>>> 8d9357f (intial)
         return done(err);
       }
     })
   );
 
   passport.serializeUser((user, done) => {
+<<<<<<< HEAD
     done(null, user.id);
+=======
+    done(null, user._id);
+>>>>>>> 8d9357f (intial)
   });
 
   passport.deserializeUser(async (id, done) => {
@@ -40,6 +62,19 @@ module.exports = function(passport) {
       const user = await User.findById(id);
       done(null, user);
     } catch (err) {
+<<<<<<< HEAD
+=======
+      console.log('Error in deserializeUser:', err);
+      
+      // If in demo mode and there's an error, try to get the user from mock data
+      if (global.DEMO_MODE) {
+        const user = global.mockData.users.find(u => u._id === id);
+        if (user) {
+          return done(null, user);
+        }
+      }
+      
+>>>>>>> 8d9357f (intial)
       done(err, null);
     }
   });

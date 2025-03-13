@@ -1,4 +1,22 @@
+<<<<<<< HEAD
 require('dotenv').config();
+=======
+try {
+  require('dotenv').config();
+} catch (error) {
+  console.error('Error loading dotenv:', error);
+}
+
+// Fallback environment variables if .env file is not loaded
+if (!process.env.PORT) process.env.PORT = 3000;
+if (!process.env.MONGODB_URI) process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/memes_db';
+if (!process.env.SESSION_SECRET) process.env.SESSION_SECRET = 'temporary_secret_key';
+
+console.log('Environment variables loaded:');
+console.log('PORT:', process.env.PORT);
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
+>>>>>>> 8d9357f (intial)
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -10,6 +28,76 @@ const flash = require('connect-flash');
 // Initialize Express app
 const app = express();
 
+<<<<<<< HEAD
+=======
+// Global to track if we're in demo mode (no MongoDB)
+global.DEMO_MODE = false;
+
+// Mock data for demo mode
+global.mockData = {
+  users: [
+    {
+      _id: '123456789012345678901234',
+      name: 'Demo User',
+      email: 'demo@example.com',
+      password: '$2a$10$ixlPY3AAd4ty1l6E2IsQ9OFZi2ba9ZQE0bP7RFcGIWNhyFrrT3YUi', // password: "password"
+      role: 'user',
+      profileImage: '/images/default-profile.png',
+      bio: 'This is a demo user account',
+      savedMemes: [],
+      likedMemes: [],
+      dislikedMemes: [],
+      reportedMemes: [],
+      date: new Date()
+    },
+    {
+      _id: '123456789012345678901235',
+      name: 'Demo Admin',
+      email: 'admin@admin.meme.com',
+      password: '$2a$10$ixlPY3AAd4ty1l6E2IsQ9OFZi2ba9ZQE0bP7RFcGIWNhyFrrT3YUi', // password: "password"
+      role: 'admin',
+      profileImage: '/images/default-profile.png',
+      bio: 'This is a demo admin account',
+      savedMemes: [],
+      likedMemes: [],
+      dislikedMemes: [],
+      reportedMemes: [],
+      date: new Date()
+    }
+  ],
+  memes: []
+};
+
+// Mock MongoDB models for demo mode
+function setupMockModels() {
+  const User = require('./src/models/User');
+  const Meme = require('./src/models/Meme');
+  
+  // Mock User.findOne
+  User.findOne = async (query) => {
+    if (!query) return null;
+    
+    if (query.email) {
+      return global.mockData.users.find(user => user.email.toLowerCase() === query.email.toLowerCase()) || null;
+    }
+    
+    return null;
+  };
+  
+  // Mock User.findById
+  User.findById = async (id) => {
+    return global.mockData.users.find(user => user._id === id) || null;
+  };
+  
+  // Mock Meme.find
+  Meme.find = async () => {
+    return global.mockData.memes;
+  };
+  
+  console.log('Mock models set up for demo mode');
+}
+
+>>>>>>> 8d9357f (intial)
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -19,7 +107,16 @@ mongoose.connect(process.env.MONGODB_URI, {
   family: 4 // Use IPv4, skip trying IPv6
 })
 .then(() => console.log('MongoDB Connected'))
+<<<<<<< HEAD
 .catch(err => console.log('MongoDB Connection Error:', err));
+=======
+.catch(err => {
+  console.log('MongoDB Connection Error:', err);
+  console.log('Starting in DEMO MODE with mock data. Some features will be limited.');
+  global.DEMO_MODE = true;
+  setupMockModels();
+});
+>>>>>>> 8d9357f (intial)
 
 // Set up EJS view engine
 app.set('view engine', 'ejs');
@@ -35,7 +132,15 @@ app.use(methodOverride('_method'));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
+<<<<<<< HEAD
   saveUninitialized: false
+=======
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+>>>>>>> 8d9357f (intial)
 }));
 
 // Passport middleware

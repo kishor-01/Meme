@@ -76,6 +76,34 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
+<<<<<<< HEAD
+=======
+// Add additional methods for demo mode support
+if (typeof global.DEMO_MODE !== 'undefined' && global.DEMO_MODE) {
+  console.log('Setting up mock User model methods');
+  
+  // These methods will be overridden in server.js setupMockModels function
+  // This is just a fallback in case they're called before that happens
+  UserSchema.statics.findOne = async function(query) {
+    if (global.mockData && global.mockData.users) {
+      if (query.email) {
+        return global.mockData.users.find(user => 
+          user.email.toLowerCase() === query.email.toLowerCase()
+        );
+      }
+    }
+    return null;
+  };
+  
+  UserSchema.statics.findById = async function(id) {
+    if (global.mockData && global.mockData.users) {
+      return global.mockData.users.find(user => user._id === id);
+    }
+    return null;
+  };
+}
+
+>>>>>>> 8d9357f (intial)
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User; 
