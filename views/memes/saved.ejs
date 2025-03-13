@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+  <!-- JavaScript -->
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Saved Memes</h1>
+        <a href="/memes/feed" class="btn btn-primary">
+          <i class="fas fa-stream"></i> Back to Feed
+        </a>
+      </div>
+      
+      <% if (memes && memes.length > 0) { %>
+        <div class="meme-grid">
+          <% memes.forEach(meme => { %>
+            <div class="meme-card">
+              <a href="/memes/<%= meme._id %>">
+                <% if (meme.mediaType === 'video') { %>
+                  <div class="meme-video-thumbnail">
+                    <video 
+                      src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+                      class="meme-image"
+                    ></video>
+                    <div class="video-overlay">
+                      <i class="fas fa-play-circle"></i>
+                    </div>
+                  </div>
+                <% } else { %>
+                  <img 
+                    src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+                    alt="<%= meme.title %>"
+                    class="meme-image"
+                  >
+                <% } %>
+              </a>
+              <div class="meme-content">
+                <h3 class="meme-title"><%= meme.title %></h3>
+                <div class="meme-meta">
+                  <div class="meme-user">
+                    <i class="fas fa-user"></i> <%= meme.user.name %>
+                  </div>
+                  <div class="meme-date">
+                    <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                  </div>
+                </div>
+              </div>
+              <div class="meme-actions">
+                <button class="like-button <%= meme.likedBy.includes(currentUser._id) ? 'liked' : '' %>" data-id="<%= meme._id %>">
+                  <i class="<%= meme.likedBy.includes(currentUser._id) ? 'fas' : 'far' %> fa-heart"></i>
+                  <span class="like-count"><%= meme.likes %></span>
+                </button>
+                <button class="save-button active" data-id="<%= meme._id %>">
+                  <i class="fas fa-bookmark"></i>
+                </button>
+                <a href="/memes/<%= meme._id %>" class="btn btn-sm btn-primary">View</a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="card">
+          <div class="card-body">
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-bookmark"></i>
+              </div>
+              <h3>No saved memes</h3>
+              <p>You haven't saved any memes yet. Explore the feed and save memes you like!</p>
+              <a href="/memes/feed" class="btn btn-primary mt-3">
+                <i class="fas fa-stream"></i> Explore Feed
+              </a>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 

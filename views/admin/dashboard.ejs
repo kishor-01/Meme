@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+      </div>
+      
+      <div class="admin-tabs">
+        <a href="/admin/dashboard" class="admin-tab active">Dashboard</a>
+        <a href="/admin/memes" class="admin-tab">Manage Memes</a>
+        <a href="/admin/users" class="admin-tab">Manage Users</a>
+      </div>
+      
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-value"><%= stats.pendingCount %></div>
+          <div class="stat-label">Pending</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-value"><%= stats.approvedCount %></div>
+          <div class="stat-label">Approved</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-times-circle"></i>
+          </div>
+          <div class="stat-value"><%= stats.rejectedCount %></div>
+          <div class="stat-label">Rejected</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-value"><%= stats.userCount %></div>
+          <div class="stat-label">Users</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Pending Approvals</h2>
+        </div>
+        <div class="card-body">
+          <% if (pendingMemes && pendingMemes.length > 0) { %>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Title</th>
+                    <th>Uploader</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pendingMemes.forEach(meme => { %>
+                    <tr>
+                      <td>
+                        <a href="/memes/<%= meme._id %>" target="_blank">
+                          <img 
+                            src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+                            alt="<%= meme.title %>"
+                            style="max-width: 100px; max-height: 60px;"
+                          >
+                        </a>
+                      </td>
+                      <td><%= meme.title %></td>
+                      <td><%= meme.user.name %></td>
+                      <td><%= new Date(meme.createdAt).toLocaleDateString() %></td>
+                      <td>
+                        <div class="action-buttons">
+                          <a href="/memes/<%= meme._id %>" class="btn btn-sm btn-outline" target="_blank">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          <form action="/admin/memes/<%= meme._id %>/approve" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                              <i class="fas fa-check"></i> Approve
+                            </button>
+                          </form>
+                          <form action="/admin/memes/<%= meme._id %>/reject" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                              <i class="fas fa-times"></i> Reject
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="text-center mt-4">
+              <a href="/admin/memes?status=pending" class="btn btn-outline">
+                View All Pending Memes
+              </a>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h3>All caught up!</h3>
+              <p>There are no memes pending approval.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 

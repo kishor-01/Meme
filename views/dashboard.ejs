@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Custom JavaScript -->
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('./partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('./partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Welcome, <%= name %>!</h1>
+        <a href="/memes/upload" class="btn btn-primary">
+          <i class="fas fa-upload"></i> Upload New Meme
+        </a>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title">Your Meme Status</h2>
+        </div>
+        <div class="card-body">
+          <div class="dashboard-stats">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-image"></i>
+              </div>
+              <div class="stat-value"><%= memes.length %></div>
+              <div class="stat-label">Total Uploads</div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="stat-value"><%= memes.filter(meme => meme.status === 'pending').length %></div>
+              <div class="stat-label">Pending Approval</div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="stat-value"><%= memes.filter(meme => meme.status === 'approved').length %></div>
+              <div class="stat-label">Approved</div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-times-circle"></i>
+              </div>
+              <div class="stat-value"><%= memes.filter(meme => meme.status === 'rejected').length %></div>
+              <div class="stat-label">Rejected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Your Memes</h2>
+        </div>
+        <div class="card-body">
+          <% if (memes && memes.length > 0) { %>
+            <div class="meme-grid">
+              <% memes.forEach(meme => { %>
+                <div class="meme-card">
+                  <a href="/memes/<%= meme._id %>">
+                    <img 
+                      src="data:<%= meme.mimeType %>;base64,<%= meme.imageData %>" 
+                      alt="<%= meme.title %>"
+                      class="meme-image"
+                    >
+                  </a>
+                  <div class="meme-content">
+                    <h3 class="meme-title"><%= meme.title %></h3>
+                    <div class="meme-meta">
+                      <div class="meme-date">
+                        <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                      </div>
+                      <span class="meme-status status-<%= meme.status %>"><%= meme.status %></span>
+                    </div>
+                  </div>
+                  <div class="meme-actions">
+                    <div>
+                      <i class="far fa-heart"></i> <%= meme.likes %>
+                    </div>
+                    <div class="action-buttons">
+                      <a href="/memes/<%= meme._id %>" class="btn btn-sm btn-outline">View</a>
+                      <form action="/memes/<%= meme._id %>?_method=DELETE" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-image"></i>
+              </div>
+              <h3>No memes yet!</h3>
+              <p>You haven't uploaded any memes yet. Click the button below to get started.</p>
+              <a href="/memes/upload" class="btn btn-primary mt-3">
+                <i class="fas fa-upload"></i> Upload Your First Meme
+              </a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <%- include('./partials/footer') %>
+  </div>
+</body>
+</html> 

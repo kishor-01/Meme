@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Upload a Meme</h1>
+      </div>
+      
+      <div class="card">
+        <div class="card-body">
+          <form action="/memes/upload" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="mediaType" class="form-label">Media Type</label>
+              <div class="media-type-selector">
+                <div class="media-type-option">
+                  <input type="radio" id="typeImage" name="mediaType" value="image" checked>
+                  <label for="typeImage">
+                    <i class="far fa-image"></i>
+                    <span>Image</span>
+                  </label>
+                </div>
+                <div class="media-type-option">
+                  <input type="radio" id="typeGif" name="mediaType" value="gif">
+                  <label for="typeGif">
+                    <i class="fas fa-film"></i>
+                    <span>GIF</span>
+                  </label>
+                </div>
+                <div class="media-type-option">
+                  <input type="radio" id="typeVideo" name="mediaType" value="video">
+                  <label for="typeVideo">
+                    <i class="fas fa-video"></i>
+                    <span>Video</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="upload-preview">
+              <div class="upload-placeholder" id="image-placeholder">
+                <i class="far fa-image"></i>
+                <p>Media preview will appear here</p>
+                <p class="image-formats">Supported formats: JPEG, PNG, GIF, WebP</p>
+                <p class="video-formats" style="display: none;">Supported formats: MP4, WebM, OGG</p>
+              </div>
+              <div id="preview-container"></div>
+            </div>
+            
+            <div class="form-group">
+              <div class="file-input-wrapper">
+                <button class="btn btn-secondary btn-block">
+                  <i class="fas fa-cloud-upload-alt"></i> <span id="upload-btn-text">Choose File</span>
+                </button>
+                <input type="file" class="file-input" name="media" id="media-input" accept="image/*, video/mp4, video/webm, video/ogg" required>
+              </div>
+              <small class="form-text text-center">Maximum file size: 20MB</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="title" class="form-label">Title</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                class="form-control"
+                placeholder="Give your meme a catchy title"
+                value="<%= typeof formData != 'undefined' ? formData.title : '' %>"
+                required
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="description" class="form-label">Description (Optional)</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-control"
+                placeholder="Add a description for your meme"
+                rows="3"
+              ><%= typeof formData != 'undefined' ? formData.description : '' %></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="tags" class="form-label">Tags (Optional)</label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                class="form-control"
+                placeholder="Enter tags separated by commas (e.g. funny, gaming, cats)"
+                value="<%= typeof formData != 'undefined' ? formData.tags : '' %>"
+              />
+              <small class="form-text">Tags help others find your meme</small>
+            </div>
+            
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-upload"></i> Upload Meme
+              </button>
+            </div>
+            
+            <p class="form-text text-center">
+              By uploading, you agree to our <a href="#">Terms of Service</a> and confirm this meme doesn't violate our content policies.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+  
+  <script>
+    // Media type selection
+    const typeImage = document.getElementById('typeImage');
+    const typeGif = document.getElementById('typeGif');
+    const typeVideo = document.getElementById('typeVideo');
+    const mediaInput = document.getElementById('media-input');
+    const uploadBtnText = document.getElementById('upload-btn-text');
+    const imageFormats = document.querySelector('.image-formats');
+    const videoFormats = document.querySelector('.video-formats');
+    
+    function updateMediaType() {
+      if (typeImage.checked || typeGif.checked) {
+        mediaInput.setAttribute('accept', 'image/*');
+        uploadBtnText.textContent = 'Choose Image';
+        imageFormats.style.display = 'block';
+        videoFormats.style.display = 'none';
+      } else if (typeVideo.checked) {
+        mediaInput.setAttribute('accept', 'video/mp4, video/webm, video/ogg');
+        uploadBtnText.textContent = 'Choose Video';
+        imageFormats.style.display = 'none';
+        videoFormats.style.display = 'block';
+      }
+    }
+    
+    typeImage.addEventListener('change', updateMediaType);
+    typeGif.addEventListener('change', updateMediaType);
+    typeVideo.addEventListener('change', updateMediaType);
+    
+    // Media preview
+    const previewContainer = document.getElementById('preview-container');
+    const imagePlaceholder = document.getElementById('image-placeholder');
+    
+    mediaInput.addEventListener('change', function() {
+      const file = this.files[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        
+        reader.addEventListener('load', function() {
+          imagePlaceholder.style.display = 'none';
+          previewContainer.innerHTML = '';
+          
+          if (file.type.startsWith('image/')) {
+            // Handle image preview
+            const img = document.createElement('img');
+            img.src = this.result;
+            img.className = 'media-preview';
+            previewContainer.appendChild(img);
+            
+            // Force GIF selection for GIFs
+            if (file.type === 'image/gif') {
+              typeGif.checked = true;
+              updateMediaType();
+            } else {
+              typeImage.checked = true;
+              updateMediaType();
+            }
+          } else if (file.type.startsWith('video/')) {
+            // Handle video preview
+            const video = document.createElement('video');
+            video.src = this.result;
+            video.className = 'media-preview';
+            video.controls = true;
+            previewContainer.appendChild(video);
+            
+            typeVideo.checked = true;
+            updateMediaType();
+          }
+        });
+        
+        reader.readAsDataURL(file);
+      } else {
+        imagePlaceholder.style.display = 'flex';
+        previewContainer.innerHTML = '';
+      }
+    });
+  </script>
+</body>
+</html> 

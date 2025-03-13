@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= typeof title !== 'undefined' ? title : 'Futuristic Memes' %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <%- body %>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 

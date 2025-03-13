@@ -1,0 +1,135 @@
+<!-- Main Navigation Bar -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-logo">
+      <a href="/">
+        <i class="fas fa-laugh-squint logo-icon"></i>
+        <span class="logo-text">MemeVault</span>
+      </a>
+    </div>
+    
+    <div class="navbar-search">
+      <div class="search-container">
+        <form action="/memes/search" method="GET">
+          <input type="text" name="query" class="search-input" placeholder="Search memes..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
+          <button type="submit" class="search-button">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <button id="navbar-toggle" class="navbar-toggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <div id="navbar-menu" class="navbar-menu">
+      <ul class="navbar-links">
+        <% 
+          // Helper function to determine if a route is active
+          function isActive(path) {
+            // Get the current URL path
+            const currentPath = typeof currentUrl !== 'undefined' ? currentUrl : '';
+            
+            // Check if the path matches the beginning of the current URL
+            if (path === '/') {
+              return currentPath === '/';
+            }
+            return currentPath.startsWith(path);
+          }
+        %>
+        
+        <li>
+          <a href="/" class="nav-link <%= isActive('/') ? 'active' : '' %>">
+            <i class="fas fa-home"></i> 
+            <span>Home</span>
+            <% if (isActive('/')) { %>
+              <span class="current-page-indicator"></span>
+            <% } %>
+          </a>
+        </li>
+
+        <li>
+          <a href="/memes/feed" class="nav-link <%= isActive('/memes/feed') ? 'active' : '' %>">
+            <i class="fas fa-stream"></i> 
+            <span>Browse</span>
+            <% if (isActive('/memes/feed')) { %>
+              <span class="current-page-indicator"></span>
+            <% } %>
+          </a>
+        </li>
+        
+        <% if (typeof user !== 'undefined' && user) { %>
+          <li>
+            <a href="/dashboard" class="nav-link <%= isActive('/dashboard') ? 'active' : '' %>">
+              <i class="fas fa-chart-line"></i> 
+              <span>Dashboard</span>
+              <% if (isActive('/dashboard')) { %>
+                <span class="current-page-indicator"></span>
+              <% } %>
+            </a>
+          </li>
+          
+          <li>
+            <a href="/memes/upload" class="nav-link highlight <%= isActive('/memes/upload') ? 'active' : '' %>">
+              <i class="fas fa-upload"></i>
+              <span>Upload</span>
+              <% if (isActive('/memes/upload')) { %>
+                <span class="current-page-indicator"></span>
+              <% } %>
+            </a>
+          </li>
+          
+          <li class="dropdown">
+            <a href="#" class="nav-link dropdown-toggle <%= isActive('/users/profile') ? 'active' : '' %>">
+              <i class="fas fa-user-circle"></i> 
+              <span><%= user.name.split(' ')[0] %></span>
+              <i class="fas fa-chevron-down"></i>
+              <% if (isActive('/users/profile')) { %>
+                <span class="current-page-indicator"></span>
+              <% } %>
+            </a>
+            <div class="dropdown-menu">
+              <a href="/users/profile/<%= user._id %>">
+                <i class="fas fa-user"></i> My Profile
+              </a>
+              <a href="/notifications">
+                <i class="fas fa-bell"></i> Notifications
+                <% if (typeof notifications !== 'undefined' && notifications > 0) { %>
+                  <span class="badge"><%= notifications %></span>
+                <% } %>
+              </a>
+              <% if (user.role === 'admin') { %>
+                <a href="/admin/dashboard" class="admin-link">
+                  <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+              <% } %>
+              <a href="/users/logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </li>
+        <% } else { %>
+          <li>
+            <a href="/users/login" class="nav-link <%= isActive('/users/login') ? 'active' : '' %>">
+              <i class="fas fa-sign-in-alt"></i> 
+              <span>Login</span>
+              <% if (isActive('/users/login')) { %>
+                <span class="current-page-indicator"></span>
+              <% } %>
+            </a>
+          </li>
+          <li>
+            <a href="/users/register" class="nav-link highlight <%= isActive('/users/register') ? 'active' : '' %>">
+              <i class="fas fa-user-plus"></i> 
+              <span>Register</span>
+              <% if (isActive('/users/register')) { %>
+                <span class="current-page-indicator"></span>
+              <% } %>
+            </a>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</nav> 

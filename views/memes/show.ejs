@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="meme-container">
+        <div class="mb-4">
+          <a href="/memes" class="btn btn-outline btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to Gallery
+          </a>
+          
+          <% if(typeof currentUser !== 'undefined' && currentUser && meme.user._id.toString() === currentUser.id) { %>
+            <form action="/memes/<%= meme._id %>?_method=DELETE" method="POST" style="display: inline; float: right;">
+              <button type="submit" class="btn btn-danger btn-sm delete-btn">
+                <i class="fas fa-trash"></i> Delete Meme
+              </button>
+            </form>
+          <% } %>
+        </div>
+        
+        <div class="meme-detail">
+          <img 
+            src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+            alt="<%= meme.title %>"
+            class="meme-detail-image"
+          >
+          
+          <div class="meme-detail-content">
+            <h1 class="meme-detail-title"><%= meme.title %></h1>
+            
+            <% if (meme.status === 'pending') { %>
+              <div class="meme-status status-pending mb-3">Pending Approval</div>
+            <% } %>
+            
+            <% if (meme.description) { %>
+              <div class="meme-detail-description">
+                <%= meme.description %>
+              </div>
+            <% } %>
+            
+            <% if (meme.tags && meme.tags.length > 0) { %>
+              <div class="meme-tags">
+                <% meme.tags.forEach(tag => { %>
+                  <span class="meme-tag"><%= tag %></span>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+          
+          <div class="meme-detail-meta">
+            <div class="meme-detail-user">
+              <div>
+                <i class="fas fa-user"></i> Uploaded by <strong><%= meme.user.name %></strong>
+              </div>
+              <div class="ml-4">
+                <i class="far fa-calendar-alt"></i> <%= new Date(meme.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+              </div>
+            </div>
+            
+            <div class="meme-detail-actions">
+              <button class="like-button <%= typeof currentUser !== 'undefined' && currentUser && meme.likedBy.includes(currentUser._id) ? 'liked' : '' %>" data-id="<%= meme._id %>">
+                <% if (typeof currentUser !== 'undefined' && currentUser && meme.likedBy.includes(currentUser._id)) { %>
+                  <i class="fas fa-heart"></i>
+                <% } else { %>
+                  <i class="far fa-heart"></i>
+                <% } %>
+                <span class="like-count"><%= meme.likes %></span> Likes
+              </button>
+              
+              <button class="btn btn-secondary btn-sm" onclick="shareMeme()">
+                <i class="fas fa-share-alt"></i> Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+  
+  <script>
+    function shareMeme() {
+      if (navigator.share) {
+        navigator.share({
+          title: '<%= meme.title %>',
+          text: '<%= meme.description || "Check out this meme!" %>',
+          url: window.location.href
+        }).then(() => {
+          console.log('Shared successfully');
+        }).catch(err => {
+          console.log('Error sharing:', err);
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const dummyInput = document.createElement('input');
+        document.body.appendChild(dummyInput);
+        dummyInput.value = window.location.href;
+        dummyInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummyInput);
+        
+        alert('Link copied to clipboard!');
+      }
+    }
+  </script>
+</body>
+</html> 

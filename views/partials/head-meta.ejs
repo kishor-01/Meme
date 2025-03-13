@@ -1,0 +1,49 @@
+<!-- Meta tags for SEO and responsiveness -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- User information for JavaScript -->
+<% if(typeof currentUser !== 'undefined' && currentUser) { %>
+  <meta name="user-id" content="<%= currentUser._id %>">
+  <meta name="user-name" content="<%= currentUser.name %>">
+  <meta name="user-role" content="<%= currentUser.role %>">
+<% } %>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="/css/style.css">
+
+<!-- Toast notifications CSS -->
+<style>
+  .toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .toast {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style> 

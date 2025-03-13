@@ -1,0 +1,39 @@
+<% if(typeof errors !== 'undefined' && errors.length > 0) { %>
+  <div class="message-container">
+    <% errors.forEach(function(error) { %>
+      <% if(error.msg && typeof error.msg === 'string' && error.msg.trim() !== '') { %>
+        <div class="message error">
+          <i class="fas fa-exclamation-circle"></i> <%= error.msg %>
+          <button class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+      <% } %>
+    <% }); %>
+  </div>
+<% } %>
+
+<% if(typeof success_msg !== 'undefined' && success_msg && typeof success_msg === 'string' && success_msg.trim() !== '') { %>
+  <div class="message-container">
+    <div class="message success">
+      <i class="fas fa-check-circle"></i> <%= success_msg %>
+      <button class="close-btn"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+<% } %>
+
+<% if(typeof error_msg !== 'undefined' && error_msg && typeof error_msg === 'string' && error_msg.trim() !== '') { %>
+  <div class="message-container">
+    <div class="message error">
+      <i class="fas fa-exclamation-circle"></i> <%= error_msg %>
+      <button class="close-btn"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+<% } %>
+
+<% if(typeof error !== 'undefined' && error && typeof error === 'string' && error.trim() !== '') { %>
+  <div class="message-container">
+    <div class="message error">
+      <i class="fas fa-exclamation-circle"></i> <%= error %>
+      <button class="close-btn"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+<% } %> 

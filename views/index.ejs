@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Custom JavaScript -->
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('./partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('./partials/messages') %>
+      
+      <section class="hero">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+          <h1 class="hero-title">Welcome to FutuMemes</h1>
+          <p class="hero-description">The ultimate futuristic platform for uploading, sharing, and discovering the best memes from around the galaxy.</p>
+          <div class="hero-buttons">
+            <a href="/memes" class="btn btn-primary btn-lg">
+              <i class="fas fa-images"></i> Browse Memes
+            </a>
+            <a href="/memes/feed" class="btn btn-primary btn-lg">
+              <i class="fas fa-stream"></i> Instagram Feed
+            </a>
+            <a href="/users/register" class="btn btn-outline btn-lg">
+              <i class="fas fa-user-plus"></i> Join Now
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      <section>
+        <h2 class="dashboard-title">Featured Memes</h2>
+        <p class="section-description">Check out our community's latest approved memes.</p>
+        
+        <% if (memes && memes.length > 0) { %>
+          <div class="featured-meme-grid">
+            <% memes.forEach(meme => { %>
+              <div class="featured-meme-card" data-type="<%= meme.mediaType %>">
+                <div class="featured-meme-img">
+                  <% if (meme.mediaType === 'video') { %>
+                    <div class="featured-video-indicator">
+                      <i class="fas fa-play"></i>
+                    </div>
+                  <% } %>
+                  <img 
+                    src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+                    alt="<%= meme.title %>"
+                    class="featured-meme-image"
+                  >
+                  <div class="featured-meme-overlay">
+                    <a href="/memes/<%= meme._id %>" class="view-btn">
+                      <i class="fas fa-eye"></i> View
+                    </a>
+                  </div>
+                </div>
+                <div class="featured-meme-content">
+                  <h3 class="featured-meme-title"><%= meme.title %></h3>
+                  <div class="featured-meme-meta">
+                    <div class="featured-meme-user">
+                      <i class="fas fa-user-circle"></i> <%= meme.user.name %>
+                    </div>
+                    <div class="featured-meme-stats">
+                      <span><i class="far fa-heart"></i> <%= meme.likes %></span>
+                      <span><i class="far fa-eye"></i> <%= meme.views %></span>
+                      <span><i class="far fa-comment"></i> <%= meme.comments ? meme.comments.length : 0 %></span>
+                    </div>
+                  </div>
+                  <div class="featured-meme-category">
+                    <span class="category-tag"><%= meme.category || 'Uncategorized' %></span>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="empty-featured">
+            <div class="empty-icon"><i class="fas fa-images"></i></div>
+            <h3>No memes available yet</h3>
+            <p>Be the first to upload!</p>
+            <a href="/memes/upload" class="btn btn-primary">
+              <i class="fas fa-upload"></i> Upload a Meme
+            </a>
+          </div>
+        <% } %>
+        
+        <div class="section-cta">
+          <a href="/memes" class="btn btn-outline">
+            <i class="fas fa-th-large"></i> View All Memes
+          </a>
+          <a href="/memes/feed" class="btn btn-primary">
+            <i class="fas fa-stream"></i> Browse Feed Style
+          </a>
+        </div>
+      </section>
+      
+      <section class="mt-5">
+        <div class="card">
+          <div class="card-body">
+            <h2 class="card-title">How It Works</h2>
+            <div class="features-grid">
+              <div class="feature">
+                <div class="feature-icon">
+                  <i class="fas fa-upload"></i>
+                </div>
+                <h3>Upload</h3>
+                <p>Create an account and upload your favorite memes to share with the community.</p>
+              </div>
+              
+              <div class="feature">
+                <div class="feature-icon">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Get Approved</h3>
+                <p>Our moderators will review your submission to ensure quality content.</p>
+              </div>
+              
+              <div class="feature">
+                <div class="feature-icon">
+                  <i class="fas fa-share-alt"></i>
+                </div>
+                <h3>Share</h3>
+                <p>Once approved, your meme is published for everyone to enjoy and share.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    
+    <%- include('./partials/footer') %>
+  </div>
+</body>
+</html> 

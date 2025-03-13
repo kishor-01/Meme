@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Meme Gallery</h1>
+        <% if(typeof currentUser !== 'undefined' && currentUser) { %>
+          <a href="/memes/upload" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload New Meme
+          </a>
+        <% } else { %>
+          <a href="/users/login" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i> Login to Upload
+          </a>
+        <% } %>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <form action="/memes/search" method="GET" class="search-form">
+            <div class="form-group">
+              <div class="search-container large">
+                <input
+                  type="text"
+                  name="q"
+                  class="search-input"
+                  placeholder="Search memes by title, description, or tags..."
+                  autocomplete="off"
+                />
+                <button type="submit" class="search-button">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <% if (memes && memes.length > 0) { %>
+        <div class="meme-grid">
+          <% memes.forEach(meme => { %>
+            <div class="meme-card">
+              <a href="/memes/<%= meme._id %>">
+                <img 
+                  src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
+                  alt="<%= meme.title %>"
+                  class="meme-image"
+                >
+              </a>
+              <div class="meme-content">
+                <h3 class="meme-title"><%= meme.title %></h3>
+                <div class="meme-meta">
+                  <div class="meme-user">
+                    <i class="fas fa-user"></i> <%= meme.user.name %>
+                  </div>
+                  <div class="meme-date">
+                    <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                  </div>
+                </div>
+              </div>
+              <div class="meme-actions">
+                <button class="like-button" data-id="<%= meme._id %>">
+                  <% if (typeof currentUser !== 'undefined' && currentUser && meme.likedBy.includes(currentUser._id)) { %>
+                    <i class="fas fa-heart"></i>
+                  <% } else { %>
+                    <i class="far fa-heart"></i>
+                  <% } %>
+                  <span class="like-count"><%= meme.likes %></span>
+                </button>
+                <a href="/memes/<%= meme._id %>" class="btn btn-sm btn-primary">View</a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="card">
+          <div class="card-body">
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-image"></i>
+              </div>
+              <h3>No memes found</h3>
+              <p>There are no memes available yet. Be the first to upload!</p>
+              <% if(typeof currentUser !== 'undefined' && currentUser) { %>
+                <a href="/memes/upload" class="btn btn-primary mt-3">
+                  <i class="fas fa-upload"></i> Upload a Meme
+                </a>
+              <% } else { %>
+                <a href="/users/login" class="btn btn-primary mt-3">
+                  <i class="fas fa-sign-in-alt"></i> Login to Upload
+                </a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 

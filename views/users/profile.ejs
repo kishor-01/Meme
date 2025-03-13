@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+  <script src="/js/profile.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="profile-header">
+        <div class="profile-image">
+          <img src="<%= profileUser.profileImage %>" alt="<%= profileUser.name %>'s profile picture" class="profile-avatar">
+        </div>
+        
+        <div class="profile-info">
+          <h1 class="profile-name"><%= profileUser.name %></h1>
+          
+          <% if(profileUser.role === 'admin') { %>
+            <span class="admin-badge">
+              <i class="fas fa-shield-alt"></i> Admin
+            </span>
+          <% } %>
+          
+          <p class="profile-bio"><%= profileUser.bio %></p>
+          
+          <div class="profile-details">
+            <% if(profileUser.location) { %>
+              <div class="profile-detail">
+                <i class="fas fa-map-marker-alt"></i> <%= profileUser.location %>
+              </div>
+            <% } %>
+            
+            <% if(profileUser.website) { %>
+              <div class="profile-detail">
+                <i class="fas fa-globe"></i> 
+                <a href="<%= profileUser.website.startsWith('http') ? profileUser.website : 'https://' + profileUser.website %>" 
+                   target="_blank" rel="noopener noreferrer">
+                  <%= profileUser.website %>
+                </a>
+              </div>
+            <% } %>
+            
+            <div class="profile-detail">
+              <i class="fas fa-calendar-alt"></i> Joined <%= new Date(profileUser.date).toLocaleDateString() %>
+            </div>
+          </div>
+          
+          <% if(isOwnProfile) { %>
+            <div class="profile-actions">
+              <a href="/users/profile/edit" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Profile
+              </a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+      
+      <!-- Content Filter Tabs -->
+      <div class="content-filter-tabs">
+        <a href="/users/profile/<%= profileUser._id %>?filter=memes" class="content-tab <%= activeFilter === 'memes' || !activeFilter ? 'active' : '' %>">
+          <i class="fas fa-images"></i> Memes
+        </a>
+        <% if(isOwnProfile) { %>
+          <a href="/users/profile/<%= profileUser._id %>?filter=liked" class="content-tab <%= activeFilter === 'liked' ? 'active' : '' %>">
+            <i class="fas fa-heart"></i> Liked
+          </a>
+          <a href="/users/profile/<%= profileUser._id %>?filter=saved" class="content-tab <%= activeFilter === 'saved' ? 'active' : '' %>">
+            <i class="fas fa-bookmark"></i> Saved
+          </a>
+        <% } %>
+      </div>
+      
+      <div class="profile-content">
+        <h2 class="section-title">
+          <% if (activeFilter === 'memes' || !activeFilter) { %>
+            <i class="fas fa-images"></i> <%= profileUser.name %>'s Memes
+          <% } else if (activeFilter === 'liked') { %>
+            <i class="fas fa-heart"></i> Liked Memes
+          <% } else if (activeFilter === 'saved') { %>
+            <i class="fas fa-bookmark"></i> Saved Memes
+          <% } %>
+        </h2>
+        
+        <% if(memes.length === 0) { %>
+          <div class="empty-state">
+            <% if (activeFilter === 'memes' || !activeFilter) { %>
+              <i class="fas fa-images empty-icon"></i>
+              <h3>No Memes Yet</h3>
+              <p><%= isOwnProfile ? 'You haven\'t' : `${profileUser.name} hasn't` %> uploaded any memes yet.</p>
+              
+              <% if(isOwnProfile) { %>
+                <a href="/memes/upload" class="btn btn-primary">
+                  <i class="fas fa-upload"></i> Upload Your First Meme
+                </a>
+              <% } %>
+            <% } else if (activeFilter === 'liked') { %>
+              <i class="fas fa-heart empty-icon"></i>
+              <h3>No Liked Memes</h3>
+              <p>You haven't liked any memes yet.</p>
+              
+              <a href="/memes/feed" class="btn btn-primary">
+                <i class="fas fa-stream"></i> Explore Feed
+              </a>
+            <% } else if (activeFilter === 'saved') { %>
+              <i class="fas fa-bookmark empty-icon"></i>
+              <h3>No Saved Memes</h3>
+              <p>You haven't saved any memes yet.</p>
+              
+              <a href="/memes/feed" class="btn btn-primary">
+                <i class="fas fa-stream"></i> Explore Feed
+              </a>
+            <% } %>
+          </div>
+        <% } else { %>
+          <div class="meme-grid">
+            <% memes.forEach(meme => { %>
+              <div class="meme-card" data-type="<%= meme.mediaType %>" data-id="<%= meme._id %>">
+                <div class="meme-card-img">
+                  <a href="/memes/<%= meme._id %>">
+                    <% if (meme.mediaType === 'video') { %>
+                      <div class="video-indicator">
+                        <i class="fas fa-play-circle"></i>
+                      </div>
+                    <% } %>
+                    <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" />
+                    <div class="meme-card-overlay">
+                      <div class="meme-card-overlay-stats">
+                        <div class="meme-card-overlay-stat">
+                          <i class="fas fa-heart"></i> <%= meme.likes %>
+                        </div>
+                        <div class="meme-card-overlay-stat">
+                          <i class="fas fa-eye"></i> <%= meme.views %>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div class="meme-card-body">
+                  <h3 class="meme-title"><%= meme.title %></h3>
+                  <div class="meme-meta">
+                    <% if (activeFilter !== 'memes' && meme.user) { %>
+                      <span class="meme-author">
+                        <i class="fas fa-user"></i> <%= meme.user.name %>
+                      </span>
+                    <% } %>
+                    <span class="meme-date">
+                      <i class="far fa-calendar-alt"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                    </span>
+                    <span class="meme-likes">
+                      <i class="far fa-heart"></i> <%= meme.likes %>
+                    </span>
+                    <span class="meme-views">
+                      <i class="far fa-eye"></i> <%= meme.views %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Custom JavaScript -->
+  <script src="/js/main.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('./partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('./partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">About FutuMemes</h1>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <h2 class="card-title">Our Mission</h2>
+          <p>FutuMemes is a cutting-edge platform dedicated to sharing the best memes from around the galaxy. Our mission is to create a community where meme enthusiasts can share, discover, and engage with high-quality meme content in a futuristic and visually appealing environment.</p>
+          
+          <p>We believe memes are a significant form of modern communication and cultural expression. Our platform is designed to showcase this art form with the respect and appreciation it deserves.</p>
+        </div>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <h2 class="card-title">How It Works</h2>
+          
+          <div class="features-grid">
+            <div class="feature">
+              <div class="feature-icon">
+                <i class="fas fa-upload"></i>
+              </div>
+              <h3>Upload</h3>
+              <p>Create an account and upload your favorite memes to share with the community.</p>
+            </div>
+            
+            <div class="feature">
+              <div class="feature-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h3>Get Approved</h3>
+              <p>Our moderators will review your submission to ensure quality content.</p>
+            </div>
+            
+            <div class="feature">
+              <div class="feature-icon">
+                <i class="fas fa-share-alt"></i>
+              </div>
+              <h3>Share</h3>
+              <p>Once approved, your meme is published for everyone to enjoy and share.</p>
+            </div>
+            
+            <div class="feature">
+              <div class="feature-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <h3>Engage</h3>
+              <p>Like your favorite memes and build your reputation in the community.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <h2 class="card-title">Our Team</h2>
+          <p>FutuMemes is developed and maintained by a team of meme enthusiasts who are passionate about creating the best meme-sharing experience possible. Our team combines expertise in web development, UI/UX design, and internet culture to deliver a platform that's both functional and visually stunning.</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-body">
+          <h2 class="card-title">Community Guidelines</h2>
+          <p>At FutuMemes, we strive to maintain a positive and inclusive community. We ask all users to adhere to the following guidelines:</p>
+          
+          <ul class="guidelines-list">
+            <li>Be respectful to other users</li>
+            <li>Do not post offensive, hateful, or discriminatory content</li>
+            <li>Respect copyright and only upload content you have the right to share</li>
+            <li>Do not post personal information of others without consent</li>
+            <li>Have fun and enjoy sharing memes!</li>
+          </ul>
+          
+          <p>For more detailed information, please refer to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+        </div>
+      </div>
+    </div>
+    
+    <%- include('./partials/footer') %>
+  </div>
+</body>
+</html> 

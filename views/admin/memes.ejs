@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title><%= title %></title>
+  <%- include('../partials/head-meta') %>
+</head>
+<body>
+  <div class="app-container">
+    <%- include('../partials/navbar') %>
+    
+    <div class="content-container">
+      <%- include('../partials/messages') %>
+      
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Meme Moderation</h1>
+      </div>
+      
+      <!-- Status Filters -->
+      <div class="status-filters">
+        <a href="/admin/memes" class="status-filter <%= currentStatus === 'all' ? 'active' : '' %>">
+          All Memes
+        </a>
+        <a href="/admin/memes?status=pending" class="status-filter <%= currentStatus === 'pending' ? 'active' : '' %>">
+          Pending
+        </a>
+        <a href="/admin/memes?status=approved" class="status-filter <%= currentStatus === 'approved' ? 'active' : '' %>">
+          Approved
+        </a>
+        <a href="/admin/memes?status=rejected" class="status-filter <%= currentStatus === 'rejected' ? 'active' : '' %>">
+          Rejected
+        </a>
+      </div>
+      
+      <% if(memes.length === 0) { %>
+        <div class="empty-state">
+          <i class="fas fa-search empty-icon"></i>
+          <h2>No Memes Found</h2>
+          <p>There are no memes matching your current filter.</p>
+        </div>
+      <% } else { %>
+        <div class="meme-grid admin-meme-grid">
+          <% memes.forEach(meme => { %>
+            <div class="meme-card admin-meme-card">
+              <div class="meme-card-img">
+                <a href="/memes/<%= meme._id %>">
+                  <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" />
+                </a>
+              </div>
+              <div class="meme-card-body">
+                <h3 class="meme-title"><%= meme.title %></h3>
+                <p class="meme-meta">
+                  Uploaded by: <%= meme.user ? meme.user.name : 'Unknown' %><br>
+                  Date: <%= new Date(meme.createdAt).toLocaleString() %><br>
+                  Status: <span class="meme-status status-<%= meme.status %>"><%= meme.status.charAt(0).toUpperCase() + meme.status.slice(1) %></span>
+                </p>
+                
+                <div class="meme-admin-actions">
+                  <% if(meme.status === 'pending') { %>
+                    <form action="/admin/memes/<%= meme._id %>/approve" method="POST" class="inline-form">
+                      <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fas fa-check"></i> Approve
+                      </button>
+                    </form>
+                    <form action="/admin/memes/<%= meme._id %>/reject" method="POST" class="inline-form">
+                      <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fas fa-times"></i> Reject
+                      </button>
+                    </form>
+                  <% } else if(meme.status === 'approved') { %>
+                    <form action="/admin/memes/<%= meme._id %>/reject" method="POST" class="inline-form">
+                      <button type="submit" class="btn btn-warning btn-sm">
+                        <i class="fas fa-times"></i> Revoke Approval
+                      </button>
+                    </form>
+                  <% } else if(meme.status === 'rejected') { %>
+                    <form action="/admin/memes/<%= meme._id %>/approve" method="POST" class="inline-form">
+                      <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fas fa-check"></i> Approve
+                      </button>
+                    </form>
+                  <% } %>
+                  <form action="/admin/memes/<%= meme._id %>?_method=DELETE" method="POST" class="inline-form delete-form">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        
+        <!-- Pagination -->
+        <% if(pagination.totalPages > 1) { %>
+          <div class="pagination">
+            <% if(pagination.page > 1) { %>
+              <a href="/admin/memes?page=<%= pagination.page - 1 %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>" class="pagination-item">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            <% } %>
+            
+            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+              <a href="/admin/memes?page=<%= i %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>" 
+                class="pagination-item <%= pagination.page === i ? 'active' : '' %>">
+                <%= i %>
+              </a>
+            <% } %>
+            
+            <% if(pagination.page < pagination.totalPages) { %>
+              <a href="/admin/memes?page=<%= pagination.page + 1 %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>" class="pagination-item">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            <% } %>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+    
+    <%- include('../partials/footer') %>
+  </div>
+</body>
+</html> 
