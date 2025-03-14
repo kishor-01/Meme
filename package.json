@@ -5,7 +5,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "vercel-build": "echo 'Build step completed'",
+    "render-build": "npm install",
+    "deploy:vercel": "vercel --prod",
+    "deploy:render": "echo 'Deploy to Render via GitHub integration'"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

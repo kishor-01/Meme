@@ -5,10 +5,17 @@ if (!process.env.PORT) process.env.PORT = 3000;
 if (!process.env.MONGODB_URI) process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/memes_db';
 if (!process.env.SESSION_SECRET) process.env.SESSION_SECRET = 'temporary_secret_key';
 
+// Determine which MongoDB URI to use based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+const MONGODB_CONNECTION_STRING = isProduction 
+  ? process.env.MONGODB_ATLAS_URI 
+  : process.env.MONGODB_URI;
+
 console.log('Environment variables loaded:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('PORT:', process.env.PORT);
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
+console.log('MONGODB_URI:', isProduction ? 'Using MongoDB Atlas' : MONGODB_CONNECTION_STRING);
+console.log('SESSION_SECRET:', process.env.SESSION_SECRET ? 'Set (hidden)' : 'Not set');
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -309,30 +316,22 @@ function setupMockModels() {
   console.log('Mock models set up for demo mode with full chainable methods');
 }
 
-// Connect to MongoDB with improved configuration
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000, // Increased timeout from 15s to 30s
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  family: 4, // Use IPv4, skip trying IPv6
-  connectTimeoutMS: 30000,
-  // Keep connection alive
-  keepAlive: true,
-  keepAliveInitialDelay: 300000
-})
-.then(() => {
-  console.log('MongoDB Connected Successfully');
-  console.log('Running in PRODUCTION MODE with real database');
-  global.DEMO_MODE = false;
-})
-.catch(err => {
-  console.error('MongoDB Connection Error:', err);
-  console.log('Please ensure MongoDB is running:');
-  console.log('1. Check MongoDB status: sudo systemctl status mongod');
-  console.log('2. Start MongoDB if needed: sudo systemctl start mongod');
-  process.exit(1); // Exit the application if MongoDB connection fails
-});
+// Connect to MongoDB or use demo mode
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(MONGODB_CONNECTION_STRING, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Connected to MongoDB');
+    return true;
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    console.log('Falling back to demo mode with mock data');
+    global.DEMO_MODE = true;
+    return false;
+  }
+}
 
 // Set up EJS view engine
 app.set('view engine', 'ejs');
@@ -389,16 +388,21 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.log(`Port ${PORT} is already in use. Trying port ${PORT + 1}`);
-    server.close();
-    app.listen(PORT + 1, () => {
-      console.log(`Server running on port ${PORT + 1}`);
-    });
-  } else {
-    console.error('Server error:', err);
-  }
+
+// Connect to database and start server
+connectToDatabase().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Mode: ${global.DEMO_MODE ? 'DEMO' : 'PRODUCTION'}`);
+    if (isProduction) {
+      console.log(`Production URLs:`);
+      console.log(`- Vercel: ${process.env.VERCEL_URL || 'Not set'}`);
+      console.log(`- Render: ${process.env.RENDER_URL || 'Not set'}`);
+    } else {
+      console.log(`Local URL: http://localhost:${PORT}`);
+    }
+  });
+}).catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });

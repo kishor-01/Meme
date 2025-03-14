@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Variables
   const reelsContainer = document.querySelector('.reels-container');
   const reelItems = document.querySelectorAll('.reel-item');
+  const hashtagItems = document.querySelectorAll('.hashtag-item');
   
   // Elements
   const memeFeed = document.getElementById('meme-feed');
@@ -30,6 +31,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const shareFacebook = document.getElementById('share-facebook');
   const shareReddit = document.getElementById('share-reddit');
   const shareWhatsapp = document.getElementById('share-whatsapp');
+  
+  // Navigation buttons
+  const globalPrevBtn = document.querySelector('.global-navigation-controls .prev-btn');
+  const globalNextBtn = document.querySelector('.global-navigation-controls .next-btn');
+  const memePrevBtns = document.querySelectorAll('.prev-meme');
+  const memeNextBtns = document.querySelectorAll('.next-meme');
   
   // Initialize modals
   const closeButtons = document.querySelectorAll('.close');
@@ -49,6 +56,44 @@ document.addEventListener('DOMContentLoaded', function() {
       shareModal.classList.remove('open');
     }
   });
+  
+  // Handle hashtag filtering
+  hashtagItems.forEach(item => {
+    item.addEventListener('click', function() {
+      // Remove active class from all hashtags
+      hashtagItems.forEach(tag => tag.classList.remove('active'));
+      
+      // Add active class to clicked hashtag
+      this.classList.add('active');
+      
+      const tag = this.textContent.trim();
+      filterMemesByTag(tag);
+    });
+  });
+  
+  // Filter memes by hashtag
+  function filterMemesByTag(tag) {
+    // If "All" is selected, show all memes
+    if (tag === 'All') {
+      reelItems.forEach(item => {
+        item.style.display = 'block';
+      });
+      return;
+    }
+    
+    // Remove # if present
+    const tagText = tag.startsWith('#') ? tag.substring(1) : tag;
+    
+    // Filter memes
+    reelItems.forEach(item => {
+      const memeTags = item.getAttribute('data-tags');
+      if (memeTags && memeTags.toLowerCase().includes(tagText.toLowerCase())) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
   
   // Handle report reason selection
   if (reportReasonSelect) {
@@ -79,8 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Setup video autoplay when in viewport
   setupVideoAutoplay();
   
-  // Setup smooth scrolling for meme reels
-  setupSmoothScrolling();
+  // Setup navigation for meme reels
+  setupMemeNavigation();
   
   // Track viewed memes for view counts
   setupViewTracking();
@@ -99,40 +144,152 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Setup meme navigation with next/previous buttons
+   */
+  function setupMemeNavigation() {
+    // Get all visible meme items
+    let visibleMemes = getVisibleMemes();
+    
+    // Global navigation buttons
+    if (globalPrevBtn) {
+      globalPrevBtn.addEventListener('click', () => {
+        navigateToMeme('prev');
+      });
+    }
+    
+    if (globalNextBtn) {
+      globalNextBtn.addEventListener('click', () => {
+        navigateToMeme('next');
+      });
+    }
+    
+    // Individual meme navigation buttons
+    memePrevBtns.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const currentMeme = this.closest('.reel-item');
+        navigateFromMeme(currentMeme, 'prev');
+      });
+    });
+    
+    memeNextBtns.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const currentMeme = this.closest('.reel-item');
+        navigateFromMeme(currentMeme, 'next');
+      });
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateToMeme('prev');
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigateToMeme('next');
+      }
+    });
+    
+    // Navigate to the next or previous meme
+    function navigateToMeme(direction) {
+      // Update the visible memes as they might have changed due to filtering
+      visibleMemes = getVisibleMemes();
+      
+      if (visibleMemes.length === 0) return;
+      
+      // Find the current meme in view
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const centerPosition = scrollPosition + (windowHeight / 2);
+      
+      let currentIndex = 0;
+      let closestDistance = Infinity;
+      
+      visibleMemes.forEach((meme, index) => {
+        const rect = meme.getBoundingClientRect();
+        const memeCenter = scrollPosition + rect.top + (rect.height / 2);
+        const distance = Math.abs(centerPosition - memeCenter);
+        
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          currentIndex = index;
+        }
+      });
+      
+      // Calculate the target index
+      let targetIndex;
+      if (direction === 'next') {
+        targetIndex = Math.min(visibleMemes.length - 1, currentIndex + 1);
+      } else {
+        targetIndex = Math.max(0, currentIndex - 1);
+      }
+      
+      // Scroll to the target meme
+      if (targetIndex !== currentIndex) {
+        visibleMemes[targetIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+    
+    // Navigate from a specific meme
+    function navigateFromMeme(currentMeme, direction) {
+      // Update the visible memes
+      visibleMemes = getVisibleMemes();
+      
+      const currentIndex = visibleMemes.indexOf(currentMeme);
+      if (currentIndex === -1) return;
+      
+      let targetIndex;
+      if (direction === 'next') {
+        targetIndex = Math.min(visibleMemes.length - 1, currentIndex + 1);
+      } else {
+        targetIndex = Math.max(0, currentIndex - 1);
+      }
+      
+      if (targetIndex !== currentIndex) {
+        visibleMemes[targetIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+    
+    // Get all visible meme items
+    function getVisibleMemes() {
+      return Array.from(reelItems).filter(meme => {
+        return meme.style.display !== 'none';
+      });
+    }
+  }
+  
+  /**
    * Setup autoplay for videos when they become visible in the viewport
    */
   function setupVideoAutoplay() {
-    if (!memeFeed) return;
-    
-    const videos = memeFeed.querySelectorAll('.meme-post-video');
+    const videos = document.querySelectorAll('.reel-media-container video');
     if (videos.length === 0) return;
     
     // Create an Intersection Observer to detect when videos are in view
     const videoObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
-        const indicator = video.closest('.meme-post-media').querySelector('.video-autoplay-indicator');
         
         if (entry.isIntersecting) {
           // Attempt to play the video when it becomes visible
-          playVideo(video, indicator);
+          playVideo(video);
           
           // Pause other videos that are not in view
           videos.forEach(otherVideo => {
             if (otherVideo !== video && !otherVideo.paused) {
               otherVideo.pause();
-              const otherIndicator = otherVideo.closest('.meme-post-media').querySelector('.video-autoplay-indicator');
-              if (otherIndicator) {
-                otherIndicator.classList.remove('show');
-              }
             }
           });
         } else {
           // Pause the video when it's no longer visible
           video.pause();
-          if (indicator) {
-            indicator.classList.remove('show');
-          }
         }
       });
     }, {
@@ -144,16 +301,12 @@ document.addEventListener('DOMContentLoaded', function() {
       videoObserver.observe(video);
       
       // Add click to play/pause functionality
-      video.addEventListener('click', () => {
-        const indicator = video.closest('.meme-post-media').querySelector('.video-autoplay-indicator');
+      video.addEventListener('click', (e) => {
+        e.preventDefault();
         if (video.paused) {
-          playVideo(video, indicator);
+          playVideo(video);
         } else {
           video.pause();
-          if (indicator) {
-            indicator.classList.add('show');
-            indicator.innerHTML = '<i class="fas fa-play"></i>';
-          }
         }
       });
     });
@@ -162,40 +315,22 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Helper function to play a video with error handling
    */
-  function playVideo(video, indicator) {
+  function playVideo(video) {
     const playPromise = video.play();
-    
-    // Show loading indicator
-    if (indicator) {
-      indicator.classList.add('show');
-      indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    }
     
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
           // Video started playing successfully
-          if (indicator) {
-            setTimeout(() => {
-              indicator.classList.remove('show');
-            }, 500);
-          }
         })
         .catch(error => {
           // Auto-play was prevented
           console.log('Autoplay prevented:', error);
-          if (indicator) {
-            indicator.classList.add('show');
-            indicator.innerHTML = '<i class="fas fa-play"></i>';
-          }
           
           // Add click event to play manually
           video.addEventListener('click', function playHandler() {
             video.play()
               .then(() => {
-                if (indicator) {
-                  indicator.classList.remove('show');
-                }
                 video.removeEventListener('click', playHandler);
               })
               .catch(err => console.log('Manual play error:', err));
@@ -208,41 +343,39 @@ document.addEventListener('DOMContentLoaded', function() {
    * Setup tracking for viewed memes
    */
   function setupViewTracking() {
-    if (!memeFeed) return;
+    const memeItems = document.querySelectorAll('.reel-item');
+    if (memeItems.length === 0) return;
     
-    const posts = memeFeed.querySelectorAll('.meme-post');
-    if (posts.length === 0) return;
-    
-    // Create an Intersection Observer to detect when posts are fully viewed
+    // Create an Intersection Observer to detect when memes are fully viewed
     const viewObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.9) {
-          const post = entry.target;
-          const memeId = post.getAttribute('data-id');
+          const memeItem = entry.target;
+          const memeId = memeItem.getAttribute('data-id');
           
           // Only count view once per page load
-          if (!post.hasAttribute('data-viewed')) {
-            incrementMemeView(memeId, post);
+          if (!memeItem.hasAttribute('data-viewed')) {
+            incrementMemeView(memeId, memeItem);
           }
         }
       });
     }, {
-      threshold: 0.9 // Post needs to be 90% visible to be considered "viewed"
+      threshold: 0.9 // Meme needs to be 90% visible to be considered "viewed"
     });
     
-    // Observe all posts
-    posts.forEach(post => {
-      viewObserver.observe(post);
+    // Observe all meme items
+    memeItems.forEach(meme => {
+      viewObserver.observe(meme);
     });
   }
   
   /**
    * Increment view count for a meme
    */
-  async function incrementMemeView(memeId, postElement) {
+  async function incrementMemeView(memeId, memeElement) {
     try {
       // Mark as viewed to prevent duplicate counts
-      postElement.setAttribute('data-viewed', 'true');
+      memeElement.setAttribute('data-viewed', 'true');
       
       // Send view increment request
       const response = await fetch(`/memes/${memeId}/view`, {
@@ -256,90 +389,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = await response.json();
       
       if (data.success) {
-        // Update view count in the UI
-        const viewsElement = postElement.querySelector('.meme-post-stat:nth-child(3) span');
-        if (viewsElement) {
-          viewsElement.textContent = data.views;
+        // Update view count in the UI if there's a view counter
+        const viewCountElement = memeElement.querySelector('.view-count');
+        if (viewCountElement) {
+          viewCountElement.textContent = data.views;
         }
       }
     } catch (error) {
       console.error('Error incrementing view:', error);
-    }
-  }
-  
-  /**
-   * Setup smooth scrolling for reels
-   */
-  function setupSmoothScrolling() {
-    if (!memeFeed) return;
-    
-    // Get all meme posts
-    const posts = Array.from(memeFeed.querySelectorAll('.meme-post'));
-    if (posts.length === 0) return;
-    
-    // Smooth scroll to the next or previous post
-    function scrollToPost(direction) {
-      // Get current scroll position
-      const currentScrollPos = memeFeed.scrollTop;
-      const viewportHeight = window.innerHeight;
-      
-      // Find the current post in view
-      let currentPostIndex = 0;
-      for (let i = 0; i < posts.length; i++) {
-        const post = posts[i];
-        const postTop = post.offsetTop;
-        
-        if (currentScrollPos < postTop + viewportHeight / 2) {
-          currentPostIndex = Math.max(0, i - 1);
-          break;
-        }
-      }
-      
-      // Calculate target post
-      let targetIndex = direction === 'next' 
-        ? Math.min(posts.length - 1, currentPostIndex + 1)
-        : Math.max(0, currentPostIndex - 1);
-      
-      const targetPost = posts[targetIndex];
-      if (targetPost) {
-        targetPost.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-    
-    // Handle keyboard navigation
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        scrollToPost('next');
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        scrollToPost('prev');
-      }
-    });
-    
-    // Handle swipe navigation on mobile
-    let touchStartY = 0;
-    let touchEndY = 0;
-    
-    memeFeed.addEventListener('touchstart', (e) => {
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-    
-    memeFeed.addEventListener('touchend', (e) => {
-      touchEndY = e.changedTouches[0].screenY;
-      handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-      const distance = touchStartY - touchEndY;
-      const isSwipeDown = distance > 50;
-      const isSwipeUp = distance < -50;
-      
-      if (isSwipeDown) {
-        scrollToPost('next');
-      } else if (isSwipeUp) {
-        scrollToPost('prev');
-      }
     }
   }
   
@@ -366,134 +423,50 @@ document.addEventListener('DOMContentLoaded', function() {
           
           if (data.success) {
             // Update like count
-            const likesCount = this.closest('.meme-post').querySelector('.likes-count');
-            const dislikesCount = this.closest('.meme-post').querySelector('.dislikes-count');
+            const likeCount = this.querySelector('.like-count');
+            if (likeCount) {
+              likeCount.textContent = data.likes;
+            }
             
-            if (likesCount) likesCount.textContent = data.likes;
-            if (dislikesCount) dislikesCount.textContent = data.dislikes;
-            
-            // Update like button state
+            // Update UI state
             if (data.hasLiked) {
               this.classList.add('active');
-              this.querySelector('i').classList.remove('far');
-              this.querySelector('i').classList.add('fas');
+              const icon = this.querySelector('i');
+              if (icon) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+              }
+              
+              // Show heart animation
+              const memeItem = this.closest('.reel-item');
+              if (memeItem) {
+                const heartAnimation = memeItem.querySelector('.heart-animation');
+                if (heartAnimation) {
+                  heartAnimation.style.display = 'block';
+                  setTimeout(() => {
+                    heartAnimation.style.display = 'none';
+                  }, 1000);
+                }
+              }
+              
+              showToast('You liked this meme');
             } else {
               this.classList.remove('active');
-              this.querySelector('i').classList.remove('fas');
-              this.querySelector('i').classList.add('far');
-            }
-            
-            // Update dislike button state
-            const dislikeBtn = this.closest('.meme-post').querySelector('.dislike-btn');
-            if (dislikeBtn) {
-              if (data.hasDisliked) {
-                dislikeBtn.classList.add('active');
-                dislikeBtn.querySelector('i').classList.remove('far');
-                dislikeBtn.querySelector('i').classList.add('fas');
-              } else {
-                dislikeBtn.classList.remove('active');
-                dislikeBtn.querySelector('i').classList.remove('fas');
-                dislikeBtn.querySelector('i').classList.add('far');
+              const icon = this.querySelector('i');
+              if (icon) {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
               }
-            }
-            
-            // Update liked by information
-            if (data.likedBy) {
-              updateLikedByInfo(this.closest('.meme-post'), data.likedBy);
+              
+              showToast('You unliked this meme');
             }
           }
         } catch (error) {
           console.error('Error liking meme:', error);
+          showToast('Failed to process your request');
         }
       });
     });
-  }
-  
-  /**
-   * Update the liked by information section with new data
-   */
-  function updateLikedByInfo(postElement, likedByUsers) {
-    if (!postElement) return;
-    
-    let likedByContainer = postElement.querySelector('.liked-by-container');
-    const postInfo = postElement.querySelector('.meme-post-info');
-    
-    // If there's no liked by data or it's empty, remove the container
-    if (!likedByUsers || likedByUsers.length === 0) {
-      if (likedByContainer) {
-        likedByContainer.remove();
-      }
-      return;
-    }
-    
-    // If the container doesn't exist, create it
-    if (!likedByContainer) {
-      likedByContainer = document.createElement('div');
-      likedByContainer.className = 'liked-by-container';
-      
-      // Find where to insert the liked-by container (after actions, before tags)
-      const actionsEl = postElement.querySelector('.meme-post-actions');
-      const tagsEl = postElement.querySelector('.meme-post-tags');
-      
-      if (actionsEl) {
-        if (tagsEl) {
-          postInfo.insertBefore(likedByContainer, tagsEl);
-        } else {
-          postInfo.appendChild(likedByContainer);
-        }
-      }
-    }
-    
-    // Create the preview part (avatars)
-    let likedByPreview = likedByContainer.querySelector('.liked-by-preview');
-    if (!likedByPreview) {
-      likedByPreview = document.createElement('div');
-      likedByPreview.className = 'liked-by-preview';
-      likedByContainer.appendChild(likedByPreview);
-    }
-    
-    // Clear existing preview
-    likedByPreview.innerHTML = '';
-    
-    // Add up to 3 avatars
-    likedByUsers.slice(0, 3).forEach(user => {
-      const img = document.createElement('img');
-      img.src = user.profileImage;
-      img.alt = user.name;
-      img.title = user.name;
-      img.className = 'liked-by-avatar';
-      likedByPreview.appendChild(img);
-    });
-    
-    // Add +X more if needed
-    if (likedByUsers.length > 3) {
-      const moreSpan = document.createElement('span');
-      moreSpan.className = 'liked-by-more';
-      moreSpan.textContent = `+${likedByUsers.length - 3}`;
-      likedByPreview.appendChild(moreSpan);
-    }
-    
-    // Create the text part
-    let likedByText = likedByContainer.querySelector('.liked-by-text');
-    if (!likedByText) {
-      likedByText = document.createElement('div');
-      likedByText.className = 'liked-by-text';
-      likedByContainer.appendChild(likedByText);
-    }
-    
-    // Build the text based on number of likes
-    let textContent = '';
-    if (likedByUsers.length === 1) {
-      textContent = `Liked by <a href="/users/profile/${likedByUsers[0]._id}">${likedByUsers[0].name}</a>`;
-    } else if (likedByUsers.length === 2) {
-      textContent = `Liked by <a href="/users/profile/${likedByUsers[0]._id}">${likedByUsers[0].name}</a> and <a href="/users/profile/${likedByUsers[1]._id}">${likedByUsers[1].name}</a>`;
-    } else if (likedByUsers.length === 3) {
-      textContent = `Liked by <a href="/users/profile/${likedByUsers[0]._id}">${likedByUsers[0].name}</a>, <a href="/users/profile/${likedByUsers[1]._id}">${likedByUsers[1].name}</a>, and <a href="/users/profile/${likedByUsers[2]._id}">${likedByUsers[2].name}</a>`;
-    } else {
-      textContent = `Liked by <a href="/users/profile/${likedByUsers[0]._id}">${likedByUsers[0].name}</a>, <a href="/users/profile/${likedByUsers[1]._id}">${likedByUsers[1].name}</a>, and ${likedByUsers.length - 2} others`;
-    }
-    
-    likedByText.innerHTML = textContent;
   }
   
   /**
@@ -582,21 +555,28 @@ document.addEventListener('DOMContentLoaded', function() {
           const data = await response.json();
           
           if (data.success) {
-            // Update save button state
+            // Update UI state
             if (data.hasSaved) {
               this.classList.add('active');
-              this.querySelector('i').classList.remove('far');
-              this.querySelector('i').classList.add('fas');
-              showToast('Meme saved to your collection');
+              const icon = this.querySelector('i');
+              if (icon) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+              }
+              showToast('Saved to your collection');
             } else {
               this.classList.remove('active');
-              this.querySelector('i').classList.remove('fas');
-              this.querySelector('i').classList.add('far');
-              showToast('Meme removed from your collection');
+              const icon = this.querySelector('i');
+              if (icon) {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+              }
+              showToast('Removed from your collection');
             }
           }
         } catch (error) {
           console.error('Error saving meme:', error);
+          showToast('Failed to save meme');
         }
       });
     });
@@ -606,85 +586,65 @@ document.addEventListener('DOMContentLoaded', function() {
    * Initialize share buttons
    */
   function initShareButtons() {
-    document.querySelectorAll('.share-btn').forEach(button => {
-      if (!button.hasInitialized) {
-        button.hasInitialized = true;
-        button.addEventListener('click', async function() {
-          const memeId = this.getAttribute('data-id');
-          const memeTitle = this.getAttribute('data-title');
-          
-          // Increment share count
-          try {
-            const response = await fetch(`/memes/${memeId}/share`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-              // Update share count in UI
-              const sharesCountElements = document.querySelectorAll(`.meme-post[data-id="${memeId}"] .shares-count`);
-              sharesCountElements.forEach(el => {
-                el.textContent = data.shares;
-              });
-              
-              // Prepare share modal
-              const shareUrl = `${window.location.origin}/memes/${memeId}`;
-              
-              if (shareLink) {
-                shareLink.value = shareUrl;
-              }
-              
-              // Show share modal
-              if (shareModal) {
-                shareModal.classList.add('open');
-              } else {
-                // Fallback to navigator.share if available (mobile devices)
-                if (navigator.share) {
-                  try {
-                    await navigator.share({
-                      title: memeTitle,
-                      text: `Check out this meme: ${memeTitle}`,
-                      url: shareUrl
-                    });
-                  } catch (err) {
-                    console.log('Share canceled or failed');
-                  }
-                } else {
-                  // Fallback to clipboard
-                  navigator.clipboard.writeText(shareUrl)
-                    .then(() => {
-                      alert('Link copied to clipboard!');
-                    })
-                    .catch(err => {
-                      console.error('Could not copy link: ', err);
-                    });
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Error sharing meme:', error);
-          }
-        });
-      }
+    const shareButtons = document.querySelectorAll('.share-btn');
+    
+    shareButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const memeId = this.getAttribute('data-id');
+        
+        // Prepare share URL
+        const shareUrl = `${window.location.origin}/memes/${memeId}`;
+        
+        // Set the link in the share modal
+        if (shareLink) {
+          shareLink.value = shareUrl;
+        }
+        
+        // Open the share modal
+        if (shareModal) {
+          shareModal.classList.add('open');
+        }
+      });
     });
     
     // Copy link button
-    if (copyLinkBtn) {
-      copyLinkBtn.addEventListener('click', () => {
-        if (shareLink) {
-          shareLink.select();
-          document.execCommand('copy');
-          
-          copyLinkBtn.textContent = 'Copied!';
-          setTimeout(() => {
-            copyLinkBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
-          }, 2000);
-        }
+    if (copyLinkBtn && shareLink) {
+      copyLinkBtn.addEventListener('click', function() {
+        shareLink.select();
+        document.execCommand('copy');
+        showToast('Link copied to clipboard');
+      });
+    }
+    
+    // Social media share buttons
+    if (shareTwitter) {
+      shareTwitter.addEventListener('click', function() {
+        const url = encodeURIComponent(shareLink.value);
+        const text = encodeURIComponent('Check out this awesome meme!');
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+      });
+    }
+    
+    if (shareFacebook) {
+      shareFacebook.addEventListener('click', function() {
+        const url = encodeURIComponent(shareLink.value);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+      });
+    }
+    
+    if (shareReddit) {
+      shareReddit.addEventListener('click', function() {
+        const url = encodeURIComponent(shareLink.value);
+        const title = encodeURIComponent('Check out this awesome meme!');
+        window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, '_blank');
+      });
+    }
+    
+    if (shareWhatsapp) {
+      shareWhatsapp.addEventListener('click', function() {
+        const url = encodeURIComponent(shareLink.value);
+        const text = encodeURIComponent('Check out this awesome meme!');
+        window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
       });
     }
   }
@@ -693,48 +653,50 @@ document.addEventListener('DOMContentLoaded', function() {
    * Initialize report buttons
    */
   function initReportButtons() {
-    document.querySelectorAll('.report-btn').forEach(button => {
-      if (!button.hasInitialized) {
-        button.hasInitialized = true;
-        button.addEventListener('click', function() {
-          const memeId = this.getAttribute('data-id');
-          
-          if (reportMemeId) {
-            reportMemeId.value = memeId;
-          }
-          
-          if (reportModal) {
-            reportModal.classList.add('open');
-          }
-        });
-      }
+    const reportButtons = document.querySelectorAll('.report-btn');
+    
+    reportButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const memeId = this.getAttribute('data-id');
+        
+        // Set the meme ID in the report form
+        if (reportMemeId) {
+          reportMemeId.value = memeId;
+        }
+        
+        // Open the report modal
+        if (reportModal) {
+          reportModal.classList.add('open');
+        }
+      });
     });
     
-    // Submit report form
+    // Handle report form submission
     if (reportForm) {
       reportForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const formData = new FormData(this);
-        const formObject = {};
-        formData.forEach((value, key) => {
-          formObject[key] = value;
-        });
+        const memeId = reportMemeId.value;
+        const reason = reportReasonSelect.value;
+        const otherReason = document.getElementById('other-reason')?.value || '';
         
         try {
-          const response = await fetch('/memes/report', {
+          const response = await fetch(`/memes/${memeId}/report`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify(formObject)
+            body: JSON.stringify({
+              reason: reason === 'other' ? otherReason : reason
+            })
           });
           
           const data = await response.json();
           
           if (data.success) {
-            // Close modal
+            // Close the modal
             reportModal.classList.remove('open');
             
             // Reset form
@@ -743,14 +705,11 @@ document.addEventListener('DOMContentLoaded', function() {
               otherReasonGroup.style.display = 'none';
             }
             
-            // Show success message
-            alert('Report submitted successfully. Thank you for helping keep our platform safe.');
-          } else {
-            alert(data.message || 'Failed to submit report. Please try again.');
+            showToast('Report submitted. Thank you for helping keep our community safe.');
           }
         } catch (error) {
           console.error('Error reporting meme:', error);
-          alert('An error occurred. Please try again later.');
+          showToast('Failed to submit report');
         }
       });
     }
@@ -760,155 +719,189 @@ document.addEventListener('DOMContentLoaded', function() {
    * Load more memes
    */
   async function loadMoreMemes() {
+    if (!loadMoreBtn) return;
+    
+    const currentPage = parseInt(loadMoreBtn.getAttribute('data-page') || '1');
+    const nextPage = currentPage + 1;
+    
     try {
-      if (loadMoreBtn) {
-        const page = loadMoreBtn.getAttribute('data-page');
-        if (!page) return;
-        
-        loadMoreBtn.disabled = true;
-        loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        
-        // Get the current media type from URL or active tab
-        const urlParams = new URLSearchParams(window.location.search);
-        let mediaType = urlParams.get('type') || 'all';
-        
-        // If we're on a category-specific page, use that media type
-        const pathParts = window.location.pathname.split('/');
-        const lastPart = pathParts[pathParts.length - 1];
-        if (lastPart === 'images') mediaType = 'image';
-        if (lastPart === 'gifs') mediaType = 'gif';
-        if (lastPart === 'reels') mediaType = 'video';
-        
-        const response = await fetch(`/memes/feed?page=${page}&type=${mediaType}`, {
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+      
+      const response = await fetch(`/memes/feed?page=${nextPage}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.memes && data.memes.length > 0) {
+        // Append memes to the feed
+        data.memes.forEach(meme => {
+          const memeElement = createMemeElement(meme);
+          reelsContainer.appendChild(memeElement);
         });
         
-        const data = await response.json();
+        // Update loadMoreBtn
+        loadMoreBtn.setAttribute('data-page', nextPage.toString());
+        loadMoreBtn.disabled = false;
+        loadMoreBtn.innerHTML = 'Load More';
         
-        if (data.memes && data.memes.length > 0) {
-          data.memes.forEach(meme => {
-            appendMemeToFeed(meme);
-          });
-          
-          // Update load more button
-          if (data.hasMore) {
-            loadMoreBtn.disabled = false;
-            loadMoreBtn.innerHTML = '<i class="fas fa-spinner"></i> Load More';
-            loadMoreBtn.setAttribute('data-page', data.nextPage);
-          } else {
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.innerHTML = 'No more memes';
-            // Hide after a delay
-            setTimeout(() => {
-              loadMoreBtn.closest('.load-more-container').style.display = 'none';
-            }, 2000);
-          }
-          
-          // Initialize newly added memes
-          initLikeButtons();
-          initDislikeButtons();
-          initSaveButtons();
-          initShareButtons();
-          initReportButtons();
-          setupVideoAutoplay();
-          setupViewTracking();
-        } else {
-          loadMoreBtn.disabled = true;
-          loadMoreBtn.innerHTML = 'No more memes';
-          // Hide after a delay
-          setTimeout(() => {
-            loadMoreBtn.closest('.load-more-container').style.display = 'none';
-          }, 2000);
+        // Re-initialize functionality for new memes
+        initLikeButtons();
+        initSaveButtons();
+        initShareButtons();
+        initReportButtons();
+        setupVideoAutoplay();
+        setupMemeNavigation();
+        setupViewTracking();
+        setupDoubleClickLike();
+        
+        // If no more memes
+        if (!data.hasMore) {
+          loadMoreBtn.style.display = 'none';
         }
+      } else {
+        loadMoreBtn.innerHTML = 'No more memes';
+        loadMoreBtn.disabled = true;
+        setTimeout(() => {
+          loadMoreBtn.style.display = 'none';
+        }, 3000);
       }
     } catch (error) {
       console.error('Error loading more memes:', error);
-      if (loadMoreBtn) {
-        loadMoreBtn.disabled = false;
-        loadMoreBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error. Try Again';
-      }
+      loadMoreBtn.innerHTML = 'Try Again';
+      loadMoreBtn.disabled = false;
     }
   }
   
   /**
-   * Show a toast notification
+   * Create a meme element from data
    */
-  function showToast(message) {
-    // Create toast if it doesn't exist
-    let toast = document.getElementById('toast-notification');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'toast-notification';
-      document.body.appendChild(toast);
-      
-      // Add styles if not already in CSS
-      if (!document.querySelector('#toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-          #toast-notification {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            z-index: 10000;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            max-width: 80%;
-            text-align: center;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          }
-          #toast-notification.show {
-            opacity: 1;
-          }
-        `;
-        document.head.appendChild(style);
-      }
+  function createMemeElement(meme) {
+    const memeElement = document.createElement('div');
+    memeElement.className = 'reel-item';
+    memeElement.setAttribute('data-id', meme._id);
+    memeElement.setAttribute('data-type', meme.mediaType);
+    
+    if (meme.tags && Array.isArray(meme.tags)) {
+      memeElement.setAttribute('data-tags', meme.tags.join(','));
     }
     
-    // Set message and show toast
-    toast.textContent = message;
-    toast.classList.add('show');
+    let mediaContent = '';
+    if (meme.mediaType === 'image') {
+      mediaContent = `<img src="data:${meme.mimeType};base64,${meme.mediaData}" alt="${meme.title}" class="reel-media" loading="lazy">`;
+    } else if (meme.mediaType === 'video') {
+      mediaContent = `<video src="data:${meme.mimeType};base64,${meme.mediaData}" class="reel-media" autoplay muted loop playsinline controlsList="nodownload"></video>`;
+    } else if (meme.mediaType === 'gif') {
+      mediaContent = `<img src="data:${meme.mimeType};base64,${meme.mediaData}" alt="${meme.title}" class="reel-media" loading="lazy">`;
+    }
     
-    // Hide after 3 seconds
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
+    memeElement.innerHTML = `
+      <div class="reel-content">
+        <div class="reel-header">
+          <div class="reel-user">
+            <a href="/users/profile/${meme.user._id}">
+              <div class="reel-user-avatar reel-avatar-image" data-profile-image="${meme.user.profileImage || '/images/default-avatar.png'}"></div>
+              <span class="reel-username">${meme.user.name}</span>
+            </a>
+          </div>
+          <div class="reel-options">
+            <button class="reel-options-btn" aria-label="More options">
+              <i class="fas fa-ellipsis-v"></i>
+              <div class="options-dropdown">
+                <a href="/memes/${meme._id}" class="option-item">View Details</a>
+                <a href="#" class="option-item report-btn" data-id="${meme._id}">Report</a>
+                <a href="#" class="option-item share-btn" data-id="${meme._id}">Share</a>
+              </div>
+            </button>
+          </div>
+        </div>
+        
+        <div class="reel-media-container">
+          ${mediaContent}
+          
+          <!-- Double click to like area -->
+          <div class="double-click-area">
+            <div class="heart-animation">
+              <i class="fas fa-heart"></i>
+            </div>
+          </div>
+          
+          <!-- Navigation buttons within each meme -->
+          <button class="meme-nav prev-meme" aria-label="Previous meme">
+            <i class="fas fa-chevron-up"></i>
+          </button>
+          <button class="meme-nav next-meme" aria-label="Next meme">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+        
+        <div class="reel-info">
+          <div class="reel-actions">
+            <button class="reel-action like-btn ${meme.isLiked ? 'active' : ''}" data-id="${meme._id}" aria-label="${meme.isLiked ? 'Unlike' : 'Like'}">
+              <i class="${meme.isLiked ? 'fas' : 'far'} fa-heart"></i>
+              <span class="like-count">${meme.likes}</span>
+            </button>
+            <button class="reel-action comment-btn" data-id="${meme._id}" aria-label="Comment">
+              <i class="far fa-comment"></i>
+              <span>${meme.comments ? meme.comments.length : 0}</span>
+            </button>
+            <button class="reel-action share-btn" data-id="${meme._id}" aria-label="Share">
+              <i class="far fa-paper-plane"></i>
+            </button>
+            <button class="reel-action save-btn ${meme.isSaved ? 'active' : ''}" data-id="${meme._id}" aria-label="${meme.isSaved ? 'Unsave' : 'Save'}">
+              <i class="${meme.isSaved ? 'fas' : 'far'} fa-bookmark"></i>
+            </button>
+          </div>
+          
+          <div class="reel-details">
+            <h3 class="reel-title">${meme.title}</h3>
+            ${meme.description ? `<p class="reel-description">${meme.description}</p>` : ''}
+            
+            <div class="reel-meta">
+              <span class="reel-category">
+                <i class="fas fa-tag"></i> ${meme.category || meme.mediaType.charAt(0).toUpperCase() + meme.mediaType.slice(1)}
+              </span>
+              <span class="reel-time">
+                <i class="far fa-clock"></i> ${new Date(meme.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            
+            ${meme.likes > 0 ? `
+              <div class="liked-by-container">
+                <p class="liked-by-text">
+                  Liked by <strong>${meme.likes}</strong> ${meme.likes === 1 ? 'person' : 'people'}
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    return memeElement;
   }
   
-  // Add double-click to like functionality
+  /**
+   * Setup double-click like functionality
+   */
   function setupDoubleClickLike() {
-    const memePosts = document.querySelectorAll('.meme-post');
-    
-    memePosts.forEach(post => {
-      const mediaContainer = post.querySelector('.meme-post-media');
-      const memeId = post.getAttribute('data-id');
-      
-      // Create a heart animation element
-      const heartAnimation = document.createElement('div');
-      heartAnimation.className = 'heart-animation';
-      heartAnimation.innerHTML = '<i class="fas fa-heart"></i>';
-      mediaContainer.appendChild(heartAnimation);
-      
-      // Add double click event listener
-      mediaContainer.addEventListener('dblclick', async function(e) {
-        e.preventDefault();
+    document.querySelectorAll('.double-click-area').forEach(area => {
+      area.addEventListener('dblclick', async function() {
+        const memeItem = this.closest('.reel-item');
+        const memeId = memeItem.getAttribute('data-id');
+        const likeBtn = memeItem.querySelector('.like-btn');
+        const likeIcon = likeBtn.querySelector('i');
+        const likeCount = likeBtn.querySelector('.like-count');
+        const heartAnimation = this.querySelector('.heart-animation');
         
-        // Play heart animation
-        heartAnimation.classList.add('active');
-        
-        // Find the like button for this post
-        const likeBtn = post.querySelector('.like-btn');
-        const likesCount = post.querySelector('.likes-count');
+        // Show heart animation
+        heartAnimation.style.display = 'block';
+        setTimeout(() => {
+          heartAnimation.style.display = 'none';
+        }, 1000);
         
         // Only like if not already liked
         if (!likeBtn.classList.contains('active')) {
@@ -925,39 +918,73 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (data.success) {
               // Update like count
-              if (likesCount) likesCount.textContent = data.likes;
+              if (likeCount) {
+                likeCount.textContent = data.likes;
+              }
               
-              // Update like button state
+              // Update button state
               likeBtn.classList.add('active');
-              likeBtn.querySelector('i').classList.remove('far');
-              likeBtn.querySelector('i').classList.add('fas');
-              
-              // Update dislike button state if needed
-              const dislikeBtn = post.querySelector('.dislike-btn');
-              if (dislikeBtn && dislikeBtn.classList.contains('active')) {
-                dislikeBtn.classList.remove('active');
-                dislikeBtn.querySelector('i').classList.remove('fas');
-                dislikeBtn.querySelector('i').classList.add('far');
-                
-                const dislikesCount = post.querySelector('.dislikes-count');
-                if (dislikesCount) dislikesCount.textContent = data.dislikes;
-              }
-              
-              // Update liked by information
-              if (data.likedBy) {
-                updateLikedByInfo(post, data.likedBy);
-              }
+              likeIcon.classList.remove('far');
+              likeIcon.classList.add('fas');
             }
           } catch (error) {
             console.error('Error liking meme:', error);
           }
         }
-        
-        // Remove the animation class after animation completes
-        setTimeout(() => {
-          heartAnimation.classList.remove('active');
-        }, 1000);
       });
     });
+  }
+  
+  /**
+   * Show a toast notification
+   */
+  function showToast(message) {
+    let toast = document.getElementById('toast-notification');
+    
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast-notification';
+      document.body.appendChild(toast);
+      
+      // Add toast styles if not already present
+      if (!document.getElementById('toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.innerHTML = `
+          #toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+          }
+          
+          #toast-notification.show {
+            opacity: 1;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+    
+    // Set message content
+    toast.textContent = message;
+    
+    // Show toast
+    toast.classList.add('show');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
   }
 }); 

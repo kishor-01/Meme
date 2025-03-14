@@ -46,120 +46,138 @@
         </a>
       </div>
       
-      <!-- Hashtag Filter Bar -->
-      <div class="hashtag-filter">
-        <div class="hashtag-filter-item active">All</div>
-        <% 
-        // Display trending hashtags
-        const trendingHashtags = [
-          'funny', 'gaming', 'anime', 'pets', 'sports', 
-          'trending', 'viral', 'tech', 'food', 'music',
-          'movies', 'travel', 'fashion', 'art', 'science'
-        ];
+      <div class="feed-container">
+        <!-- Sidebar with hashtags -->
+        <div class="hashtags-sidebar">
+          <h3>Trending Tags</h3>
+          <div class="hashtag-list">
+            <div class="hashtag-item active">All</div>
+            <% 
+            // Display trending hashtags
+            const trendingHashtags = [
+              'funny', 'gaming', 'anime', 'pets', 'sports', 
+              'trending', 'viral', 'tech', 'food', 'music',
+              'movies', 'travel', 'fashion', 'art', 'science'
+            ];
+            
+            trendingHashtags.forEach(tag => { %>
+              <div class="hashtag-item">#<%= tag %></div>
+            <% }); %>
+          </div>
+        </div>
         
-        trendingHashtags.forEach(tag => { %>
-          <div class="hashtag-filter-item">#<%= tag %></div>
-        <% }); %>
-      </div>
-      
-      <!-- Instagram-style vertical feed container -->
-      <div class="reels-container">
-        <% if (memes && memes.length > 0) { %>
-          <% memes.forEach(meme => { %>
-            <div class="reel-item" data-id="<%= meme._id %>" data-type="<%= meme.mediaType %>">
-              <div class="reel-content">
-                <div class="reel-header">
-                  <div class="reel-user">
-                    <a href="/users/profile/<%= meme.user._id %>">
-                      <div class="reel-user-avatar reel-avatar-image" data-profile-image="<%= meme.user.profileImage || '/images/default-avatar.png' %>"></div>
-                      <span class="reel-username"><%= meme.user.name %></span>
-                    </a>
-                  </div>
-                  <div class="reel-options">
-                    <button class="reel-options-btn">
-                      <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                  </div>
-                </div>
-                
-                <div class="reel-media-container">
-                  <% if (meme.mediaType === 'image') { %>
-                    <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
-                  <% } else if (meme.mediaType === 'video') { %>
-                    <video src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" class="reel-media" autoplay muted loop playsinline controlsList="nodownload"></video>
-                  <% } else if (meme.mediaType === 'gif') { %>
-                    <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
-                  <% } %>
-                  
-                  <!-- Double click to like area -->
-                  <div class="double-click-area">
-                    <div class="heart-animation">
-                      <i class="fas fa-heart"></i>
+        <!-- Instagram-style vertical feed container -->
+        <div class="reels-container">
+          <% if (memes && memes.length > 0) { %>
+            <% memes.forEach(meme => { %>
+              <div class="reel-item" data-id="<%= meme._id %>" data-type="<%= meme.mediaType %>">
+                <div class="reel-content">
+                  <div class="reel-header">
+                    <div class="reel-user">
+                      <a href="/users/profile/<%= meme.user._id %>">
+                        <div class="reel-user-avatar reel-avatar-image" data-profile-image="<%= meme.user.profileImage || '/images/default-avatar.png' %>"></div>
+                        <span class="reel-username"><%= meme.user.name %></span>
+                      </a>
+                    </div>
+                    <div class="reel-options">
+                      <button class="reel-options-btn" aria-label="More options">
+                        <i class="fas fa-ellipsis-v"></i>
+                        <div class="options-dropdown">
+                          <a href="/memes/<%= meme._id %>" class="option-item">View Details</a>
+                          <a href="#" class="option-item report-btn" data-id="<%= meme._id %>">Report</a>
+                          <a href="#" class="option-item share-btn" data-id="<%= meme._id %>">Share</a>
+                        </div>
+                      </button>
                     </div>
                   </div>
-                </div>
-                
-                <div class="reel-info">
-                  <div class="reel-actions">
-                    <button class="reel-action like-btn <%= meme.isLiked ? 'active' : '' %>" data-id="<%= meme._id %>">
-                      <i class="<%= meme.isLiked ? 'fas' : 'far' %> fa-heart"></i>
-                      <span class="like-count"><%= meme.likes %></span>
-                    </button>
-                    <button class="reel-action comment-btn" data-id="<%= meme._id %>">
-                      <i class="far fa-comment"></i>
-                      <span><%= meme.comments ? meme.comments.length : 0 %></span>
-                    </button>
-                    <button class="reel-action share-btn">
-                      <i class="far fa-paper-plane"></i>
-                    </button>
-                    <button class="reel-action save-btn <%= meme.isSaved ? 'active' : '' %>" data-id="<%= meme._id %>">
-                      <i class="<%= meme.isSaved ? 'fas' : 'far' %> fa-bookmark"></i>
-                    </button>
-                  </div>
                   
-                  <div class="reel-details">
-                    <h3 class="reel-title"><%= meme.title %></h3>
-                    <% if (meme.description && meme.description.trim() !== '') { %>
-                      <p class="reel-description"><%= meme.description %></p>
+                  <div class="reel-media-container">
+                    <% if (meme.mediaType === 'image') { %>
+                      <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
+                    <% } else if (meme.mediaType === 'video') { %>
+                      <video src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" class="reel-media" autoplay muted loop playsinline controlsList="nodownload"></video>
+                    <% } else if (meme.mediaType === 'gif') { %>
+                      <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
                     <% } %>
                     
-                    <div class="reel-meta">
-                      <span class="reel-category">
-                        <i class="fas fa-tag"></i> <%= meme.category || meme.mediaType.charAt(0).toUpperCase() + meme.mediaType.slice(1) %>
-                      </span>
-                      <span class="reel-time">
-                        <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
-                      </span>
-                    </div>
-                    
-                    <% if (meme.likes > 0) { %>
-                      <div class="liked-by-container">
-                        <p class="liked-by-text">
-                          Liked by <strong><%= meme.likes %></strong> <%= meme.likes === 1 ? 'person' : 'people' %>
-                        </p>
+                    <!-- Double click to like area -->
+                    <div class="double-click-area">
+                      <div class="heart-animation">
+                        <i class="fas fa-heart"></i>
                       </div>
-                    <% } %>
+                    </div>
+                    
+                    <!-- Navigation buttons within each meme -->
+                    <button class="meme-nav prev-meme" aria-label="Previous meme">
+                      <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="meme-nav next-meme" aria-label="Next meme">
+                      <i class="fas fa-chevron-down"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="reel-info">
+                    <div class="reel-actions">
+                      <button class="reel-action like-btn <%= meme.isLiked ? 'active' : '' %>" data-id="<%= meme._id %>" aria-label="<%= meme.isLiked ? 'Unlike' : 'Like' %>">
+                        <i class="<%= meme.isLiked ? 'fas' : 'far' %> fa-heart"></i>
+                        <span class="like-count"><%= meme.likes %></span>
+                      </button>
+                      <button class="reel-action comment-btn" data-id="<%= meme._id %>" aria-label="Comment">
+                        <i class="far fa-comment"></i>
+                        <span><%= meme.comments ? meme.comments.length : 0 %></span>
+                      </button>
+                      <button class="reel-action share-btn" data-id="<%= meme._id %>" aria-label="Share">
+                        <i class="far fa-paper-plane"></i>
+                      </button>
+                      <button class="reel-action save-btn <%= meme.isSaved ? 'active' : '' %>" data-id="<%= meme._id %>" aria-label="<%= meme.isSaved ? 'Unsave' : 'Save' %>">
+                        <i class="<%= meme.isSaved ? 'fas' : 'far' %> fa-bookmark"></i>
+                      </button>
+                    </div>
+                    
+                    <div class="reel-details">
+                      <h3 class="reel-title"><%= meme.title %></h3>
+                      <% if (meme.description && meme.description.trim() !== '') { %>
+                        <p class="reel-description"><%= meme.description %></p>
+                      <% } %>
+                      
+                      <div class="reel-meta">
+                        <span class="reel-category">
+                          <i class="fas fa-tag"></i> <%= meme.category || meme.mediaType.charAt(0).toUpperCase() + meme.mediaType.slice(1) %>
+                        </span>
+                        <span class="reel-time">
+                          <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                        </span>
+                      </div>
+                      
+                      <% if (meme.likes > 0) { %>
+                        <div class="liked-by-container">
+                          <p class="liked-by-text">
+                            Liked by <strong><%= meme.likes %></strong> <%= meme.likes === 1 ? 'person' : 'people' %>
+                          </p>
+                        </div>
+                      <% } %>
+                    </div>
                   </div>
                 </div>
               </div>
+            <% }); %>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="far fa-sad-tear"></i>
+              </div>
+              <h3>No memes found</h3>
+              <p>Be the first to share something in this category!</p>
             </div>
-          <% }); %>
-        <% } else { %>
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <i class="far fa-sad-tear"></i>
-            </div>
-            <h3>No memes found</h3>
-            <p>Be the first to share something in this category!</p>
-          </div>
-        <% } %>
+          <% } %>
+        </div>
       </div>
       
-      <div class="navigation-controls">
-        <button class="nav-control prev-btn">
+      <div class="global-navigation-controls">
+        <button class="nav-control prev-btn" aria-label="Previous meme">
           <i class="fas fa-chevron-up"></i>
         </button>
-        <button class="nav-control next-btn">
+        <button class="nav-control next-btn" aria-label="Next meme">
           <i class="fas fa-chevron-down"></i>
         </button>
       </div>
@@ -203,13 +221,8 @@
             <label for="other-reason">Please specify:</label>
             <textarea id="other-reason" name="otherReason" class="form-control" rows="3"></textarea>
           </div>
-          <div class="form-group">
-            <label for="report-description">Additional details (optional):</label>
-            <textarea id="report-description" name="description" class="form-control" rows="3"></textarea>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary close">Cancel</button>
-            <button type="submit" class="btn btn-danger">Submit Report</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Report</button>
           </div>
         </form>
       </div>
@@ -220,30 +233,27 @@
   <div class="modal" id="share-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">Share Meme</h3>
+        <h3 class="modal-title">Share This Meme</h3>
         <button class="close">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label for="share-link">Share Link:</label>
-          <div class="input-group">
-            <input type="text" id="share-link" class="form-control" readonly>
-            <button id="copy-link-btn" class="btn btn-primary">
-              <i class="fas fa-copy"></i> Copy Link
-            </button>
-          </div>
+        <div class="share-link-container">
+          <input type="text" id="share-link" class="form-control" readonly>
+          <button id="copy-link-btn" class="btn btn-primary">
+            <i class="fas fa-copy"></i> Copy
+          </button>
         </div>
         <div class="share-social">
-          <button id="share-twitter" class="btn btn-social btn-twitter">
+          <button id="share-twitter" class="btn btn-social twitter">
             <i class="fab fa-twitter"></i> Twitter
           </button>
-          <button id="share-facebook" class="btn btn-social btn-facebook">
+          <button id="share-facebook" class="btn btn-social facebook">
             <i class="fab fa-facebook-f"></i> Facebook
           </button>
-          <button id="share-reddit" class="btn btn-social btn-reddit">
+          <button id="share-reddit" class="btn btn-social reddit">
             <i class="fab fa-reddit-alien"></i> Reddit
           </button>
-          <button id="share-whatsapp" class="btn btn-social btn-whatsapp">
+          <button id="share-whatsapp" class="btn btn-social whatsapp">
             <i class="fab fa-whatsapp"></i> WhatsApp
           </button>
         </div>
