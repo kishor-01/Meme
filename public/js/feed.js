@@ -2,7 +2,19 @@
  * Feed JavaScript - Enhanced Instagram-like Reels Experience
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+  // Set profile images
+  document.querySelectorAll('.reel-avatar-image').forEach(avatar => {
+    const profileImage = avatar.getAttribute('data-profile-image');
+    if (profileImage) {
+      avatar.style.backgroundImage = `url('${profileImage}')`;
+    }
+  });
+  
+  // Variables
+  const reelsContainer = document.querySelector('.reels-container');
+  const reelItems = document.querySelectorAll('.reel-item');
+  
   // Elements
   const memeFeed = document.getElementById('meme-feed');
   const loadMoreBtn = document.getElementById('load-more-btn');

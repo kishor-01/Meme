@@ -1,0 +1,40 @@
+/* Compact header styles to reduce space used at the top of the feed */
+.dashboard-header {
+  padding: 8px 15px !important;
+  min-height: auto !important;
+}
+
+.dashboard-title {
+  font-size: 1.3rem !important;
+}
+
+.category-tabs {
+  padding: 5px 0 !important;
+}
+
+.hashtag-filter {
+  padding: 6px 10px !important;
+  max-height: 35px !important;
+  overflow-y: hidden !important;
+}
+
+.hashtag-filter-item {
+  padding: 3px 8px !important;
+  margin-right: 6px !important;
+  border-radius: 12px !important;
+  font-size: 0.8rem !important;
+}
+
+.btn.btn-primary {
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+}
+
+.reels-container {
+  height: calc(100vh - 150px) !important;
+}
+
+/* Increase space for actual meme content */
+.reel-item {
+  min-height: 85vh !important;
+}

@@ -29,7 +29,7 @@ const upload = multer({
 });
 
 // Instagram-style feed (infinite scroll)
-router.get('/feed', ensureAuthenticated, async (req, res) => {
+router.get('/feed', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -48,10 +48,29 @@ router.get('/feed', ensureAuthenticated, async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('user', 'name profileImage')
-      .populate('likedBy', 'name profileImage');
+      .populate('user', 'name profileImage');
     
     const hasMore = memes.length === limit;
+    
+    // Add isLiked and isSaved properties to memes for logged-in users
+    if (req.isAuthenticated()) {
+      const user = await User.findById(req.user.id)
+        .select('likedMemes savedMemes');
+      
+      const likedMemeIds = user.likedMemes.map(id => id.toString());
+      const savedMemeIds = user.savedMemes.map(id => id.toString());
+      
+      memes.forEach(meme => {
+        meme.isLiked = likedMemeIds.includes(meme._id.toString());
+        meme.isSaved = savedMemeIds.includes(meme._id.toString());
+      });
+    } else {
+      // For non-logged in users, set these to false
+      memes.forEach(meme => {
+        meme.isLiked = false;
+        meme.isSaved = false;
+      });
+    }
     
     if (req.xhr || req.headers.accept.indexOf('json') > -1) {
       return res.json({

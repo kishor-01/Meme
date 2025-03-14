@@ -5,6 +5,27 @@ const passport = require('passport');
 const User = require('../models/User');
 const { forwardAuthenticated, ensureAuthenticated } = require('../middleware/auth');
 const Meme = require('../models/Meme');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const imageTypes = /jpeg|jpg|png|gif|webp/;
+    const isImage = imageTypes.test(file.mimetype);
+    const extname = imageTypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (isImage && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Error: Only images (jpeg, jpg, png, gif, webp) are allowed'));
+    }
+  }
+});
 
 // Login Page
 router.get('/login', forwardAuthenticated, (req, res) => {
@@ -342,23 +363,31 @@ router.get('/profile/edit', ensureAuthenticated, (req, res) => {
 });
 
 // Update Profile
-router.put('/profile', ensureAuthenticated, async (req, res) => {
+router.put('/profile', ensureAuthenticated, upload.single('profileImageFile'), async (req, res) => {
   try {
-    const { name, bio, location, website, profileImage } = req.body;
+    const { name, bio, location, website, profileImageUrl } = req.body;
     
     // Find the user
     const user = await User.findById(req.user.id);
     
-    // Update fields
+    // Update basic fields
     user.name = name;
-    user.bio = bio;
-    user.location = location;
-    user.website = website;
+    user.bio = bio || 'This user has not added a bio yet.';
+    user.location = location || '';
+    user.website = website || '';
     
-    // Only update profile image if a new one is provided
-    if (profileImage && profileImage.trim() !== '') {
-      user.profileImage = profileImage;
+    // Handle profile image update
+    if (req.file) {
+      // If a file was uploaded, convert to base64 and store
+      const imageBuffer = req.file.buffer;
+      const mimeType = req.file.mimetype;
+      const base64Image = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+      user.profileImage = base64Image;
+    } else if (profileImageUrl && profileImageUrl.trim() !== '') {
+      // If a URL was provided, use that
+      user.profileImage = profileImageUrl;
     }
+    // If neither file nor URL provided, keep existing image
     
     await user.save();
     

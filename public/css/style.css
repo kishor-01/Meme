@@ -110,6 +110,7 @@ img {
   max-width: var(--container-width);
   margin: 0 auto;
   width: 100%;
+  margin-top: 60px; /* Add top margin to prevent navbar overlap */
 }
 
 /* ===== Navbar ===== */
@@ -2082,5 +2083,102 @@ img {
   
   .featured-meme-img {
     height: 200px;
+  }
+}
+
+/* ===== Modals & Popups ===== */
+.modal,
+.popup,
+.toast {
+  z-index: 1050; /* Higher than navbar */
+}
+
+.modal-backdrop {
+  z-index: 1040; /* Just below modals but above everything else */
+}
+
+/* Toast Notification */
+#toast-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 1060; /* Higher than modals */
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  max-width: 80%;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#toast-notification.show {
+  opacity: 1;
+  transform: translate(-50%, -10px);
+}
+
+/* Message notifications */
+.message-container {
+  position: fixed;
+  top: 70px; /* Below navbar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1055;
+  width: auto;
+}
+
+/* Heart animation for double-click to like */
+.heart-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.heart-animation.active {
+  animation: heart-pulse 0.8s ease-in-out forwards;
+}
+
+.heart-animation i {
+  font-size: 80px;
+  color: white;
+  text-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+@keyframes heart-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.9;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.9;
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
   }
 } 

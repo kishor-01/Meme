@@ -12,6 +12,91 @@
   <link rel="stylesheet" href="/css/style.css">
   <!-- Custom JavaScript -->
   <script src="/js/main.js" defer></script>
+  <script>
+    // Image preview handling
+    document.addEventListener('DOMContentLoaded', function() {
+      // For direct URL input
+      const profileImageInput = document.getElementById('profileImage');
+      const previewBtn = document.getElementById('preview-image-btn');
+      const imagePreview = document.getElementById('image-preview');
+      
+      previewBtn.addEventListener('click', function() {
+        if (profileImageInput.value) {
+          imagePreview.src = profileImageInput.value;
+        }
+      });
+      
+      // For file upload
+      const fileInput = document.getElementById('profileImageFile');
+      const filePreview = document.getElementById('file-preview');
+      
+      fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            filePreview.src = e.target.result;
+            document.getElementById('file-preview-container').style.display = 'block';
+            // When a file is selected, hide the URL preview
+            document.getElementById('url-option').classList.remove('active-option');
+            document.getElementById('file-option').classList.add('active-option');
+            document.getElementById('url-input-container').style.display = 'none';
+            document.getElementById('file-input-container').style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      // Toggle between URL and file upload
+      document.getElementById('url-toggle').addEventListener('click', function() {
+        document.getElementById('url-option').classList.add('active-option');
+        document.getElementById('file-option').classList.remove('active-option');
+        document.getElementById('url-input-container').style.display = 'block';
+        document.getElementById('file-input-container').style.display = 'none';
+      });
+      
+      document.getElementById('file-toggle').addEventListener('click', function() {
+        document.getElementById('url-option').classList.remove('active-option');
+        document.getElementById('file-option').classList.add('active-option');
+        document.getElementById('url-input-container').style.display = 'none';
+        document.getElementById('file-input-container').style.display = 'block';
+      });
+    });
+  </script>
+  <style>
+    .image-option-toggle {
+      display: flex;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      overflow: hidden;
+      width: fit-content;
+    }
+    
+    .toggle-option {
+      padding: 8px 15px;
+      background: #333;
+      color: #ccc;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .active-option {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .profile-preview-img {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+    }
+    
+    #file-preview-container {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -26,7 +111,7 @@
       
       <div class="card">
         <div class="card-body">
-          <form action="/users/profile?_method=PUT" method="POST" class="profile-form">
+          <form action="/users/profile?_method=PUT" method="POST" class="profile-form" enctype="multipart/form-data">
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="name" class="form-label">Name</label>
@@ -77,30 +162,57 @@
             </div>
             
             <div class="form-group">
-              <label for="profileImage" class="form-label">Profile Image URL (Optional)</label>
-              <div class="input-group">
-                <input
-                  type="text"
-                  id="profileImage"
-                  name="profileImage"
-                  class="form-control"
-                  value="<%= user.profileImage %>"
-                  placeholder="https://example.com/image.jpg"
-                />
-                <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="preview-image-btn">
-                    Preview
-                  </button>
+              <label class="form-label">Profile Image</label>
+              
+              <div class="image-option-toggle">
+                <button type="button" class="toggle-option active-option" id="url-toggle">URL</button>
+                <button type="button" class="toggle-option" id="file-toggle">Upload File</button>
+              </div>
+              
+              <div id="url-input-container">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="profileImage"
+                    name="profileImageUrl"
+                    class="form-control"
+                    value="<%= user.profileImage %>"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="button" id="preview-image-btn">
+                      Preview
+                    </button>
+                  </div>
+                </div>
+                <small class="form-text text-muted">Enter a URL for your profile image.</small>
+                <div id="image-preview-container" class="mt-2">
+                  <img 
+                    src="<%= user.profileImage %>" 
+                    alt="Profile preview" 
+                    id="image-preview" 
+                    class="profile-preview-img"
+                  />
                 </div>
               </div>
-              <small class="form-text text-muted">Leave empty to keep your current image.</small>
-              <div id="image-preview-container" class="mt-2">
-                <img 
-                  src="<%= user.profileImage %>" 
-                  alt="Profile preview" 
-                  id="image-preview" 
-                  class="profile-preview-img"
+              
+              <div id="file-input-container" style="display: none;">
+                <input
+                  type="file"
+                  id="profileImageFile"
+                  name="profileImageFile"
+                  class="form-control"
+                  accept="image/*"
                 />
+                <small class="form-text text-muted">Upload an image file (JPG, PNG, etc.)</small>
+                <div id="file-preview-container" class="mt-2">
+                  <img 
+                    src="#" 
+                    alt="Profile preview" 
+                    id="file-preview" 
+                    class="profile-preview-img"
+                  />
+                </div>
               </div>
             </div>
             

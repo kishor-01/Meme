@@ -5,6 +5,7 @@
   <%- include('../partials/head-meta') %>
   <!-- Feed specific CSS -->
   <link rel="stylesheet" href="/css/feed.css">
+  <link rel="stylesheet" href="/css/feed-compact.css">
   <!-- JavaScript -->
   <script src="/js/main.js" defer></script>
   <script src="/js/feed.js" defer></script>
@@ -49,164 +50,130 @@
       <div class="hashtag-filter">
         <div class="hashtag-filter-item active">All</div>
         <% 
-        // Extract unique tags from all memes
-        let uniqueTags = [];
-        if (memes && memes.length > 0) {
-          memes.forEach(meme => {
-            if (meme.tags && meme.tags.length > 0) {
-              meme.tags.forEach(tag => {
-                if (!uniqueTags.includes(tag)) {
-                  uniqueTags.push(tag);
-                }
-              });
-            }
-          });
-        }
-        %>
+        // Display trending hashtags
+        const trendingHashtags = [
+          'funny', 'gaming', 'anime', 'pets', 'sports', 
+          'trending', 'viral', 'tech', 'food', 'music',
+          'movies', 'travel', 'fashion', 'art', 'science'
+        ];
         
-        <% uniqueTags.forEach(tag => { %>
-          <div class="hashtag-filter-item" data-tag="<%= tag %>">#<%= tag %></div>
+        trendingHashtags.forEach(tag => { %>
+          <div class="hashtag-filter-item">#<%= tag %></div>
         <% }); %>
       </div>
       
-      <div class="meme-feed" id="meme-feed">
+      <!-- Instagram-style vertical feed container -->
+      <div class="reels-container">
         <% if (memes && memes.length > 0) { %>
           <% memes.forEach(meme => { %>
-            <div class="meme-post" data-id="<%= meme._id %>">
-              <div class="meme-post-header">
-                <div class="meme-post-user">
-                  <img src="<%= meme.user.profileImage %>" alt="<%= meme.user.name %>" class="meme-post-user-avatar">
-                  <div class="meme-post-user-info">
-                    <a href="/users/profile/<%= meme.user._id %>" class="meme-post-username"><%= meme.user.name %></a>
-                    <div class="meme-post-time"><%= new Date(meme.createdAt).toLocaleDateString() %></div>
+            <div class="reel-item" data-id="<%= meme._id %>" data-type="<%= meme.mediaType %>">
+              <div class="reel-content">
+                <div class="reel-header">
+                  <div class="reel-user">
+                    <a href="/users/profile/<%= meme.user._id %>">
+                      <div class="reel-user-avatar reel-avatar-image" data-profile-image="<%= meme.user.profileImage || '/images/default-avatar.png' %>"></div>
+                      <span class="reel-username"><%= meme.user.name %></span>
+                    </a>
+                  </div>
+                  <div class="reel-options">
+                    <button class="reel-options-btn">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
                   </div>
                 </div>
-                <div class="meme-post-options">
-                  <button class="meme-post-options-btn">
-                    <i class="fas fa-ellipsis-v"></i>
-                  </button>
-                  <div class="meme-post-options-menu">
-                    <a href="/memes/<%= meme._id %>" class="meme-post-option">
-                      <i class="fas fa-external-link-alt"></i> Open in Full View
-                    </a>
-                    <button class="meme-post-option report-btn" data-id="<%= meme._id %>">
-                      <i class="fas fa-flag"></i> Report
+                
+                <div class="reel-media-container">
+                  <% if (meme.mediaType === 'image') { %>
+                    <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
+                  <% } else if (meme.mediaType === 'video') { %>
+                    <video src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" class="reel-media" autoplay muted loop playsinline controlsList="nodownload"></video>
+                  <% } else if (meme.mediaType === 'gif') { %>
+                    <img src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" alt="<%= meme.title %>" class="reel-media" loading="lazy">
+                  <% } %>
+                  
+                  <!-- Double click to like area -->
+                  <div class="double-click-area">
+                    <div class="heart-animation">
+                      <i class="fas fa-heart"></i>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="reel-info">
+                  <div class="reel-actions">
+                    <button class="reel-action like-btn <%= meme.isLiked ? 'active' : '' %>" data-id="<%= meme._id %>">
+                      <i class="<%= meme.isLiked ? 'fas' : 'far' %> fa-heart"></i>
+                      <span class="like-count"><%= meme.likes %></span>
                     </button>
-                    <% if (currentUser && (currentUser._id == meme.user._id || currentUser.role === 'admin')) { %>
-                      <a href="/memes/<%= meme._id %>/edit" class="meme-post-option">
-                        <i class="fas fa-edit"></i> Edit
-                      </a>
-                      <button class="meme-post-option delete-meme-btn" data-id="<%= meme._id %>">
-                        <i class="fas fa-trash-alt"></i> Delete
-                      </button>
+                    <button class="reel-action comment-btn" data-id="<%= meme._id %>">
+                      <i class="far fa-comment"></i>
+                      <span><%= meme.comments ? meme.comments.length : 0 %></span>
+                    </button>
+                    <button class="reel-action share-btn">
+                      <i class="far fa-paper-plane"></i>
+                    </button>
+                    <button class="reel-action save-btn <%= meme.isSaved ? 'active' : '' %>" data-id="<%= meme._id %>">
+                      <i class="<%= meme.isSaved ? 'fas' : 'far' %> fa-bookmark"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="reel-details">
+                    <h3 class="reel-title"><%= meme.title %></h3>
+                    <% if (meme.description && meme.description.trim() !== '') { %>
+                      <p class="reel-description"><%= meme.description %></p>
+                    <% } %>
+                    
+                    <div class="reel-meta">
+                      <span class="reel-category">
+                        <i class="fas fa-tag"></i> <%= meme.category || meme.mediaType.charAt(0).toUpperCase() + meme.mediaType.slice(1) %>
+                      </span>
+                      <span class="reel-time">
+                        <i class="far fa-clock"></i> <%= new Date(meme.createdAt).toLocaleDateString() %>
+                      </span>
+                    </div>
+                    
+                    <% if (meme.likes > 0) { %>
+                      <div class="liked-by-container">
+                        <p class="liked-by-text">
+                          Liked by <strong><%= meme.likes %></strong> <%= meme.likes === 1 ? 'person' : 'people' %>
+                        </p>
+                      </div>
                     <% } %>
                   </div>
                 </div>
               </div>
-              
-              <div class="meme-post-content">
-                <div class="meme-post-media">
-                  <% if (meme.mediaType === 'video') { %>
-                    <video class="meme-post-video" loop muted playsinline>
-                      <source src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" type="<%= meme.mimeType %>">
-                      Your browser does not support the video tag.
-                    </video>
-                    <div class="video-autoplay-indicator">
-                      <i class="fas fa-play"></i>
-                    </div>
-                  <% } else { %>
-                    <img 
-                      src="data:<%= meme.mimeType %>;base64,<%= meme.mediaData %>" 
-                      alt="<%= meme.title %>"
-                      class="meme-post-image"
-                    >
-                  <% } %>
-                </div>
-                
-                <!-- Instagram Style Side Actions -->
-                <div class="meme-post-side-actions">
-                  <button class="meme-post-side-action like-btn <%= meme.likedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
-                    <i class="<%= meme.likedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-heart"></i>
-                    <span class="count"><%= meme.likes %></span>
-                  </button>
-                  <button class="meme-post-side-action comment-btn" data-id="<%= meme._id %>">
-                    <i class="far fa-comment"></i>
-                    <span class="count"><%= meme.comments ? meme.comments.length : 0 %></span>
-                  </button>
-                  <button class="meme-post-side-action share-btn" data-id="<%= meme._id %>" data-title="<%= meme.title %>">
-                    <i class="fas fa-share"></i>
-                    <span class="count"><%= meme.shares || 0 %></span>
-                  </button>
-                  <button class="meme-post-side-action save-btn <%= meme.savedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
-                    <i class="<%= meme.savedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-bookmark"></i>
-                  </button>
-                </div>
-                
-                <div class="meme-post-info">
-                  <h3 class="meme-post-title"><%= meme.title %></h3>
-                  <% if (meme.description) { %>
-                    <p class="meme-post-description"><%= meme.description %></p>
-                  <% } %>
-                  
-                  <div class="meme-post-stats">
-                    <div class="meme-post-stat">
-                      <i class="fas fa-heart"></i> <span class="likes-count"><%= meme.likes %></span> Likes
-                    </div>
-                    <div class="meme-post-stat">
-                      <i class="fas fa-thumbs-down"></i> <span class="dislikes-count"><%= meme.dislikes %></span> Dislikes
-                    </div>
-                    <div class="meme-post-stat">
-                      <i class="fas fa-eye"></i> <span><%= meme.views %></span> Views
-                    </div>
-                    <div class="meme-post-stat">
-                      <i class="fas fa-share-alt"></i> <span class="shares-count"><%= meme.shares %></span> Shares
-                    </div>
-                  </div>
-                  
-                  <div class="meme-post-actions">
-                    <button class="meme-post-action like-btn <%= meme.likedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
-                      <i class="<%= meme.likedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-heart"></i> Like
-                    </button>
-                    <button class="meme-post-action dislike-btn <%= meme.dislikedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
-                      <i class="<%= meme.dislikedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-thumbs-down"></i> Dislike
-                    </button>
-                    <button class="meme-post-action save-btn <%= meme.savedBy.includes(currentUser?._id) ? 'active' : '' %>" data-id="<%= meme._id %>">
-                      <i class="<%= meme.savedBy.includes(currentUser?._id) ? 'fas' : 'far' %> fa-bookmark"></i> Save
-                    </button>
-                    <button class="meme-post-action share-btn" data-id="<%= meme._id %>" data-title="<%= meme.title %>">
-                      <i class="fas fa-share-alt"></i> Share
-                    </button>
-                  </div>
-                  
-                  <% if (meme.tags && meme.tags.length > 0) { %>
-                    <div class="meme-post-tags">
-                      <% meme.tags.forEach(tag => { %>
-                        <a href="/tags/<%= tag %>" class="meme-post-tag">#<%= tag %></a>
-                      <% }) %>
-                    </div>
-                  <% } %>
-                </div>
-              </div>
             </div>
-          <% }) %>
-          
-          <div class="load-more-container">
-            <button id="load-more-btn" class="btn" data-page="2">
-              <i class="fas fa-spinner"></i> Load More
-            </button>
-          </div>
+          <% }); %>
         <% } else { %>
           <div class="empty-state">
             <div class="empty-state-icon">
-              <i class="far fa-frown"></i>
+              <i class="far fa-sad-tear"></i>
             </div>
             <h3>No memes found</h3>
-            <p>Be the first to upload a meme in this category!</p>
-            <a href="/memes/upload" class="btn btn-primary">
-              <i class="fas fa-upload"></i> Upload Meme
-            </a>
+            <p>Be the first to share something in this category!</p>
           </div>
         <% } %>
+      </div>
+      
+      <div class="navigation-controls">
+        <button class="nav-control prev-btn">
+          <i class="fas fa-chevron-up"></i>
+        </button>
+        <button class="nav-control next-btn">
+          <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-content">
+        <p>&copy; <%= new Date().getFullYear() %> MemeVault. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+        </div>
       </div>
     </div>
   </div>
